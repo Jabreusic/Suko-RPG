@@ -212,6 +212,11 @@ async function onSend() {
     const data = await res.json();
     
     if (data.ok) {
+      // NEW! Display dice roll if present
+      if (data.diceRoll) {
+        displayDiceRoll(data.diceRoll);
+      }
+      
       // Add AI response
       addChatMessage(data.narration, 'assistant');
       
@@ -466,4 +471,65 @@ function updateStatsPanel() {
   } else {
     invList.innerHTML = '<p class="placeholder">Sin items</p>';
   }
+}
+
+/* ========== DICE ROLL DISPLAY ========== */
+
+function displayDiceRoll(roll) {
+  if (!roll) return;
+  
+  // Create dice roll container
+  const diceContainer = document.createElement('div');
+  diceContainer.className = 'dice-roll-display';
+  
+  // Determine result color
+  let resultClass = 'neutral';
+  let resultText = 'Tirada';
+  
+  if (roll.criticalSuccess) {
+    resultClass = 'critical-success';
+    resultText = '⭐ ¡ÉXITO CRÍTICO!';
+  } else if (roll.criticalFailure) {
+    resultClass = 'critical-failure';
+    resultText = '💀 ¡FRACASO CRÍTICO!';
+  } else if (roll.success) {
+    resultClass = 'success';
+    resultText = '✅ ÉXITO';
+  } else {
+    resultClass = 'failure';
+    resultText = '❌ FRACASO';
+  }
+  
+  // Build dice display
+  diceContainer.innerHTML = `
+    <div class="dice-header">
+      <div class="dice-skill">${roll.skill.toUpperCase()}</div>
+      <div class="dice-result ${resultClass}">${resultText}</div>
+    </div>
+    <div class="dice-math">
+      <span class="dice-d20">🎲 ${roll.d20}</span>
+      <span class="dice-plus">+</span>
+      <span class="dice-bonus">${roll.bonus >= 0 ? '+' : ''}${roll.bonus}</span>
+      <span class="dice-equals">=</span>
+      <span class="dice-total">${roll.total}</span>
+      <span class="dice-vs">vs</span>
+      <span class="dice-dc">DC ${roll.difficulty}</span>
+    </div>
+  `;
+  
+  // Insert before the narration message
+  const chatBox = document.getElementById('chatBox');
+  if (chatBox.firstChild) {
+    chatBox.insertBefore(diceContainer, chatBox.firstChild);
+  } else {
+    chatBox.appendChild(diceContainer);
+  }
+  
+  // Auto-scroll to show dice roll
+  chatBox.scrollTop = 0;
+  
+  // Auto-dismiss after 5 seconds (animation fades)
+  setTimeout(() => {
+    diceContainer.classList.add('dice-fade');
+  }, 5000);
 }

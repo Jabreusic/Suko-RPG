@@ -901,6 +901,16 @@ app.post('/api/message', async (req, res) => {
     let narration = '';
     let quickCommands = []; // Declare in global scope
 
+    // Load character stats - NEW!
+    let characterStats = null;
+    try {
+      if (state?.ability && typeof state.ability === "string") {
+        characterStats = JSON.parse(state.ability);
+      }
+    } catch (err) {
+      console.warn("[STATS PARSE]", err.message);
+    }
+    let diceRoll = null; // Store dice roll result
     if (isSpecialCommand) {
       if (cleanMessage.includes('inventario')) {
         narration = 'Tu mochila contiene: ' + 
@@ -972,7 +982,7 @@ app.post('/api/message', async (req, res) => {
       }
 
       // Build prompt for Gemini - HIGHLY VIVID & IMMERSIVE with dynamic pressures/factions
-      const buildNarrativePrompt = (action, gameState, recentContext, npcList, turn, pressures, factions) => {
+      const buildNarrativePrompt = (action, gameState, recentContext, npcList, turn, pressures, factions, diceRoll) => {
         const turnPhase = turn < 10 ? 'ACTO I: REVELACIÓN' : turn < 25 ? 'ACTO II: CONFLICTO' : 'ACTO III: CONSECUENCIA';
         
         const pressureContext = (pressures || []).length > 0 
@@ -1007,6 +1017,12 @@ ${(recentContext || []).slice(0, 4).reverse().map(m => {
 }).join('\n')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TIRADA DE DADOS (si aplica):
+${diceRoll ? `Habilidad: ${diceRoll.skill} | d20: ${diceRoll.d20} | Bonus: +${diceRoll.bonus} | Total: ${diceRoll.total} vs DC ${diceRoll.difficulty}
+${diceRoll.criticalSuccess ? "⭐ ¡ÉXITO CRÍTICO!" : diceRoll.success ? "✅ ÉXITO" : diceRoll.criticalFailure ? "💀 FRACASO CRÍTICO" : "❌ FRACASO"}
+
+INTERPRETA ESTA TIRADA NARRATIVAMENTE: si éxito, logra el objetivo pero aparecen nuevas complicaciones. Si fracaso, su intento falla de forma que abre nuevas tensiones. Si crítico éxito, logro espectacular. Si crítico fracaso, desastre." : "No hay tirada de dados."}
 
 AHORA: El jugador hace esto → "${action}"
 
@@ -1055,6 +1071,11 @@ AL FINAL DE TU NARRACIÓN, SUGIERE 4 ACCIONES INMEDIATAS CONTEXTUALES:
 
 AHORA GENERA TU NARRACIÓN (${lengthGuide}):`;
       };
+      // NEW! Dice roll logic
+      if (characterStats && shouldRollDice(cleanMessage, state?.current_pressure)) {
+        diceRoll = performSkillCheck(characterStats, cleanMessage, 11); // Difficulty 11
+        console.log(`[DICE ROLL] ${diceRoll.skill} - d20:${diceRoll.d20} +${diceRoll.bonus} = ${diceRoll.total} (DC ${diceRoll.difficulty})`);
+      }
 
       const prompt = buildNarrativePrompt(cleanMessage, state, recentMessages, npcs, totalMessages || 1, activePressures, activeFactions);
 
@@ -1162,6 +1183,7 @@ AHORA GENERA TU NARRACIÓN (${lengthGuide}):`;
       campaign_id: id,
       narration,
       quickCommands: quickCommands,
+      diceRoll: diceRoll || null, // NEW! Include dice roll results
       state: updatedState || {},
       inventory: (inventory || []).map(i => ({ name: i.item_name })),
       locations: (locations || []).map(l => ({ name: l.location_name })),
