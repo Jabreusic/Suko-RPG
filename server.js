@@ -285,23 +285,84 @@ app.post('/api/campaign', async (req, res) => {
     // Insert campaign_state
     await supabase.from('campaign_state').insert({
       campaign_id: campaignId,
-      location: '',
-      region: '',
-      season: '',
+      location: 'Metrópolis de Convergencia - Distrito Mercantil',
+      region: 'Tierras Neutrales',
+      season: 'Otoño tardío',
       ability: '',
       ability_limits: '',
       fatigue: 'leve',
-      current_pressure: '',
+      current_pressure: 'Rumores de movimiento factional en las sombras',
       next_hook: '',
-      money: '10',
+      money: '15',
       updated_at: now
     });
 
-    // Insert opening scene message
+    // Insert initial NPCs with drama
+    await supabase.from('npcs').insert([
+      {
+        campaign_id: campaignId,
+        npc_name: 'Sifu Wren Kobo',
+        role: 'Maestro de Combate',
+        goal: 'Recrutar a quienes resistirán el Tribunal Ember',
+        personality: 'Áspero pero justo. Sospecha de extraños. Cicatrices de fuego antiguas.',
+        location: 'Gimnasio en los muelles'
+      },
+      {
+        campaign_id: campaignId,
+        npc_name: 'Elder Panya',
+        role: 'Sabia & Médica',
+        goal: 'Desentrañar una visión que la persigue: futuro sangrentiento',
+        personality: 'Calmada pero urgida. Ve más de lo que debería. Te observa intensamente.',
+        location: 'Santuario del Loto, templo en la montaña'
+      },
+      {
+        campaign_id: campaignId,
+        npc_name: 'Ren Calloway',
+        role: 'Capitán del Camino de la Linterna',
+        goal: 'Expandir territorio de tráfico. Busca "colaboradores".',
+        personality: 'Encantador. Sonrisa falsa. Cicatriz atravesando media cara.',
+        location: 'Taberna "Ancora Rota" en muelles'
+      }
+    ]);
+
+    // Insert initial pressures
+    await supabase.from('narrative_pressure').insert([
+      {
+        campaign_id: campaignId,
+        pressure_type: 'political',
+        description: 'Tribunal Ember recluta en secreto generales descontentos. Pagan bien por información.',
+        severity: 5,
+        created_at: now
+      },
+      {
+        campaign_id: campaignId,
+        pressure_type: 'time',
+        description: 'Caravana comercial importante llega en 3 días. Facciones rivales buscan sabotaje.',
+        severity: 4,
+        created_at: now
+      }
+    ]);
+
+    // Insert opening scene message - MUCHO MAS INMERSIVA
+    const openingScene = `
+Abres los ojos. La metrópolis de Convergencia rodea: una masa de madera, piedra y fuego mágico que ilumina tiendas de tela andrajosa. Hueles: especias quemadas, agua estancada, sangre seca.
+
+SITUACIÓN INMEDIATA:
+Te encuentras en el Mercado Mercantil, borde de la plaza principal. Es atardecer. Una riña acaba de terminar: dos guardias de la Reconciliación arrastran un mercader sangrando hacia un callejón. Nadie interviene. Nadie mira.
+
+TU BOLSA: 15 monedas (herencia de viaje). Ropa de viajero. Nada de valor.
+
+OPCIONES INMEDIATAS:
+1. Intervenir (riesgo: enfrentar guardias)
+2. Seguir (aprender más sobre quién era el mercader)
+3. Huir (buscar refugio seguro antes del anochecer)
+
+¿Qué haces en este momento oscuro, ${cName}?`;
+
     await supabase.from('messages').insert({
       campaign_id: campaignId,
       role: 'assistant',
-      content: 'La bruma se disipa. Tu primer recuerdo es claro: desiertas calles de una metrópolis sin nombre. ¿Qué ves primero?',
+      content: openingScene.trim(),
       summary_flag: false
     });
 
@@ -469,43 +530,72 @@ app.post('/api/message', async (req, res) => {
 
       // Build improved prompt
       const prompt = `
-ERES SUKO - NARRADOR DE RPG NARRATIVO OSCURO
+ERES UN NARRADOR DE MUNDO VIVO - SUKO RPG
 
-CONTEXTO DEL MUNDO (Año 19 del Concord):
-- Era post-guerra, paz frágil entre Cuatro Naciones
-- Tensión política: reformismo vs militarismo
-- Facciones activas: Ember Court Remnant, Lantern Road Syndicate, Lotus Vigil, Grove-Keepers, Reconciliation Council, Free Captains
-- Amenaza: bandoleros, espíritus inquietos, tráfico de armas, bandas rivales
+Tu rol es CREAR DRAMA, TENSIÓN, OPORTUNIDAD. No eres juez. Eres guardián de un mundo que existe sin el jugador.
 
-UBICACIÓN ACTUAL: ${state?.location || 'desconocida'}, región ${state?.region || 'sin definir'}
-ESTADO DEL JUGADOR: Fatiga: ${state?.fatigue || 'normal'}, Dinero: ${state?.money || '0'}, Presión actual: ${state?.current_pressure || 'ninguna'}
+═══════════════════════════════════════════════════════════════
 
-NPCs RECURRENTES ACTIVOS:
-${(npcs || []).slice(0, 5).map(n => `- ${n.npc_name} (${n.role}): ${n.personality || 'personalidad desconocida'}`).join('\n')}
+CONTEXTO CRÍTICO:
+Año 19 Post-Concordia. Las 4 Naciones firmaron paz hace casi 2 décadas. 
+PERO: Esa paz es FRÁGIL. Extremistas de cada bando preparan golpes. 
+FACCIONES ACTIVAS (con OBJETIVOS concretos, NO estáticas):
+- Tribunal Ember Remanente: Restaurar dominio del fuego por la fuerza. Reclutan generales militares descontentos.
+- Concilio de Reconciliación: Construir gobierno unificado. Sufren sabotaje constante.
+- Vigilia del Loto: Guardianes espirituales. Detectan corrupción en templos.
+- Recolectores de Arboledas: Protegen ecosistema. Denuncian tráfico forestal.
+- Camino de la Linterna: Sindicato criminal. Tráfico de armas, inteligencia, favores oscuros.
+- Capitanes Libres: Piratas. Controlan ruta comercial crucial.
 
-CONTEXTO RECIENTE:
-${(recentMessages || []).slice(0, 8).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Escena'}: ${m.content}`).join('\n')}
+UBICACIÓN ACTUAL: ${state?.location || 'Metrópolis de Convergencia (cruce de las Naciones)'}
+REGIÓN: ${state?.region || 'Tierras Neutrales'}
+ESTADO DEL JUGADOR: Fatiga ${state?.fatigue || 'leve'} | Dinero ${state?.money || '10 monedas'} | Presión ${state?.current_pressure || 'ninguna YET'}
 
-ACCIÓN DEL JUGADOR: ${cleanMessage}
+PRESIONES NARRATIVAS ACTIVAS (MUNDO QUE RESPIRA):
+${state?.current_pressure || 'Se rumorea que algo se mueve en las sombras...'}
 
-INSTRUCCIONES CRÍTICAS:
-1. Narra CONSECUENCIAS, no sistemas. Cada respuesta mueve: escena, relación, recurso, rumor, herida
-2. El mundo existe sin el jugador. Los NPCs tienen objetivos propios, pueden perder contra terceros
-3. Presión narrativa es DRAMA, no frustración: recursos bajos, opciones difíciles, tiempo escaso, relaciones tensas
-4. Menciona si hay presión narrativa actual, cómo evoluciona, qué facciones avanzan en trasfondo
-5. Cultura y texturas: comida regional, ropa característica, arte y entretenimiento
-6. Las consecuencias son DURADERAS: pueblos recuerdan ayuda, rivales cargan derrotas, favores se cobran, traiciones resuenan
-7. Tono: oscuro pero no desesperado. Esperanza condicional. Ritmo respira entre intenso y descanso
+NPCs ACTIVOS CON AGENDAS PROPIAS:
+${(npcs || []).slice(0, 5).map(n => `• ${n.npc_name} (${n.role}): Busca ${n.goal || 'objetivos oscuros'}. ${n.personality || ''}`).join('\n')}
+${(npcs || []).length === 0 ? '• Sifu Wren Kobo (Maestro de Combate): Busca reclutas para resistencia. Sospecha de ti.\n• Elder Panya (Sabia): Tuvo una visión. Necesita a alguien de confianza.' : ''}
 
-RESPUESTA EN JSON ESTRICTO:
+CONVERSACIÓN RECIENTE:
+${(recentMessages || []).slice(0, 5).reverse().map(m => \`\${m.role === 'user' ? '[JUGADOR]' : '[MUNDO]'}: \${m.content.substring(0, 80)}\`).join('\n')}
+
+═══════════════════════════════════════════════════════════════
+
+AHORA: Jugador intenta: "${cleanMessage}"
+
+REQUERIMIENTOS DE LA NARRACIÓN:
+1. CONSECUENCIAS INMEDIATAS: Cada acción tiene 3-5 efectos secundarios. ¿Quién lo ve? ¿Quién se molesta? ¿Qué oportunidad se abre/cierra?
+
+2. EL MUNDO EXISTE SIN ÉL: Los NPCs tienen planes que avanzan INDEPENDIENTE. Relaciones cambian entre ellos. 
+   Ej: "Mientras estabas en la taberna, Sifu Wren fue arrestado por Reconciliación" o "Elder Panya encontró lo que buscaba"
+
+3. OPRIME PERO NO ASFIXIES: Presión narrativa = recursos bajos, opciones difíciles, tiempo contado, relaciones en riesgo. 
+   NO es frustración de Game Over. Es DRAMA que IMPORTA.
+
+4. ESPECIFICIDAD: No digas "encuentras una pista". Di "encuentras un medallón del Tribunal Ember, aún caliente" 
+   Di nombres, temperaturas, aromas, sangre si la hay, mojado si llueve. TEXTURAS.
+
+5. CADA FACCIÓN AVANZA EN TRASFONDO: Describe un movimiento CONCRETO. 
+   Ej: "Reconciliación recruta en muelles", "Linterna Road congela préstamo a comerciante", etc.
+
+6. PRESIÓN DURA CUANDO MERECIDA: Si el jugador hace algo audaz/estúpido, HAZLO CONTAR. 
+   Puede ser con cicatrices, dinero perdido, favores adeudados, enemigos nuevos. Consecuencias DURAN.
+
+7. OPORTUNIDADES: Pero también deja abiertas puertas. Alguien lo nece sita. Hay dinero fácil. Una alianza posible.
+
+8. TONO: Oscuro pero con chispa de esperanza. Ritmo: 2 párrafos de acción + 1 de consecuencias.
+
+RESPUESTA EN JSON:
 {
-  "narration": "narración de 2-4 párrafos máximo",
+  "narration": "2-4 párrafos. Vividos. Específicos. Con consecuencias que IMPORTAN.",
   "state_patch": {
-    "location": "nuevo lugar si cambió (o null)",
-    "region": "nueva región si cambió (o null)",
-    "fatigue": "nuevo nivel si cambió (or null)",
-    "money": "dinero nuevo si cambió (or null)",
-    "current_pressure": "presión narrativa si hay (or null)"
+    "location": "nueva ubicación si se movió (ej: 'Callejón Sur, detrás del mercado negro')",
+    "region": "nueva región si se movió",
+    "fatigue": "nuevo nivel (leve/moderada/alta) si cambió",
+    "money": "dinero nuevo si cambió (ej: '8 monedas, 1 deuda pendiente')",
+    "current_pressure": "presión narrativa activa (ej: 'Cazador del Tribunal Ember te busca: precio 50 monedas')"
   }
 }
 `;
@@ -516,7 +606,7 @@ RESPUESTA EN JSON ESTRICTO:
       } catch (apiErr) {
         await logEvent(id, 'ERROR', 'Gemini call failed', apiErr.message);
         structured = {
-          narration: 'La bruma espiritual interfiere. Intenta reformular tu acción.'
+          narration: 'La bruma espiritual interfiere. El mundo contiene el aliento. Intenta reformular tu acción o busca cobijo.'
         };
       }
 
