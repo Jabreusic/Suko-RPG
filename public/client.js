@@ -54,6 +54,10 @@ function bindUi() {
     onSend();
   });
 
+  document.getElementById('presionBtn').addEventListener('click', function () {
+    updatePressurePanel();
+  });
+
   document.getElementById('inventarioBtn').addEventListener('click', function () {
     document.getElementById('userInput').value = '/inventario';
     onSend();
@@ -261,6 +265,7 @@ async function loadCampaign(campaignId) {
     
     renderMessages(data.messages || []);
     updateStatePanel();
+    updatePressurePanel();
     updateInventoryPanel();
     updateMapPanel();
     
@@ -313,6 +318,7 @@ async function onSend() {
     if (data.state) {
       state.currentState = data.state;
       updateStatePanel();
+      updatePressurePanel();
     }
     if (data.inventory) {
       state.inventory = data.inventory;
@@ -435,6 +441,67 @@ function updateMapPanel() {
     });
     list.appendChild(btn);
   });
+}
+
+async function updatePressurePanel() {
+  if (!isValidCampaignId(state.campaignId)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/pressure/${state.campaignId}`);
+    const data = await res.json();
+
+    const pressureListEl = document.getElementById('pressureList');
+    const factionListEl = document.getElementById('factionList');
+
+    if (!data || !data.ok) {
+      pressureListEl.innerHTML = '<p class="placeholder">Error cargando presión</p>';
+      factionListEl.innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4><p class="placeholder">Error</p>';
+      return;
+    }
+
+    // Render presiones
+    const pressures = data.pressures || [];
+    if (pressures.length === 0) {
+      pressureListEl.innerHTML = '<p class="placeholder">Sin presión activa</p>';
+    } else {
+      pressureListEl.innerHTML = '';
+      pressures.forEach(function (p) {
+        const severity = Array(p.severity || 1).join('⚡');
+        const el = document.createElement('div');
+        el.className = 'pressure-item';
+        el.innerHTML = `<div class="pressure-type">${p.pressure_type}</div>
+          <div class="pressure-desc">${p.description}</div>
+          <div class="pressure-severity">${severity}</div>`;
+        pressureListEl.appendChild(el);
+      });
+    }
+
+    // Render facciones
+    const factions = data.factions || [];
+    factionListEl.innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4>';
+    if (factions.length === 0) {
+      factionListEl.innerHTML += '<p class="placeholder">Sin facciones</p>';
+    } else {
+      factions.forEach(function (f) {
+        const pct = Math.min(100, Math.max(0, f.progress_pct || 0));
+        const el = document.createElement('div');
+        el.className = 'faction-item';
+        el.innerHTML = `<div class="faction-name">${f.faction_name}</div>
+          <div class="faction-goal">${f.current_goal || 'Objetivo'}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${pct}%"></div>
+          </div>
+          <div class="progress-pct">${pct}%</div>`;
+        factionListEl.appendChild(el);
+      });
+    }
+  } catch (err) {
+    console.error('Error updating pressure:', err);
+    document.getElementById('pressureList').innerHTML = '<p class="placeholder">Error</p>';
+    document.getElementById('factionList').innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4><p class="placeholder">Error</p>';
+  }
 }
 
 function setBusy(isBusy) {
