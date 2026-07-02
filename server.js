@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -12,10 +13,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Leer index.html al iniciar
+let indexHtmlContent = '';
+try {
+  indexHtmlContent = fs.readFileSync(join(__dirname, 'web', 'index.html'), 'utf-8');
+} catch (err) {
+  console.error('Error leyendo index.html:', err.message);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(join(__dirname, 'web')));
+
+// Servir archivos estáticos desde 'web'
+app.use(express.static(join(__dirname, 'web'), {
+  extensions: ['html', 'js', 'css']
+}));
 
 // Supabase client
 const supabase = createClient(
@@ -527,12 +540,22 @@ app.post('/api/log', async (req, res) => {
 
 // Servir index.html para SPA routing
 app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'web', 'index.html'));
+  if (indexHtmlContent) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(indexHtmlContent);
+  } else {
+    res.status(500).send('Error cargando página.');
+  }
 });
 
 // Fallback: todas las rutas no-API van a index.html (SPA)
 app.get('*', (req, res) => {
-  res.sendFile(join(__dirname, 'web', 'index.html'));
+  if (indexHtmlContent) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(indexHtmlContent);
+  } else {
+    res.status(500).send('Error cargando página.');
+  }
 });
 
 // Start server
