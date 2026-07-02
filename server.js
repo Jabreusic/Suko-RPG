@@ -98,6 +98,8 @@ async function callGemini(promptText) {
   try {
     return JSON.parse(text);
   } catch (err) {
+    // JSON parse failed - Gemini likely didn't return valid JSON
+    // This is a known issue with complex prompts; fall back
     return {
       narration: 'La escena queda suspendida un instante.',
       state_patch: {}
@@ -528,77 +530,45 @@ app.post('/api/message', async (req, res) => {
         .eq('campaign_id', id)
         .limit(12);
 
-      // Build improved prompt
-      const prompt = `
-ERES UN NARRADOR DE MUNDO VIVO - SUKO RPG
+      // Build prompt for Gemini
+      const prompt = `ERES NARRADOR DE UN MUNDO OSCURO. AVATAR POST-GUERRA.
 
-Tu rol es CREAR DRAMA, TENSIÓN, OPORTUNIDAD. No eres juez. Eres guardián de un mundo que existe sin el jugador.
+MUNDO: Año 19 post-Concordia. Paz frágil. Extremistas de cada nación aún luchan.
+- Tribunal Ember: Quiere restaurar dominio del fuego
+- Concilio Reconciliación: Intenta gobierno unificado
+- Vigilia del Loto: Guardianes espirituales
+- Linterna Road: Crimen organizado
+- Capitanes Libres: Piratas
 
-═══════════════════════════════════════════════════════════════
-
-CONTEXTO CRÍTICO:
-Año 19 Post-Concordia. Las 4 Naciones firmaron paz hace casi 2 décadas. 
-PERO: Esa paz es FRÁGIL. Extremistas de cada bando preparan golpes. 
-FACCIONES ACTIVAS (con OBJETIVOS concretos, NO estáticas):
-- Tribunal Ember Remanente: Restaurar dominio del fuego por la fuerza. Reclutan generales militares descontentos.
-- Concilio de Reconciliación: Construir gobierno unificado. Sufren sabotaje constante.
-- Vigilia del Loto: Guardianes espirituales. Detectan corrupción en templos.
-- Recolectores de Arboledas: Protegen ecosistema. Denuncian tráfico forestal.
-- Camino de la Linterna: Sindicato criminal. Tráfico de armas, inteligencia, favores oscuros.
-- Capitanes Libres: Piratas. Controlan ruta comercial crucial.
-
-UBICACIÓN ACTUAL: ${state?.location || 'Metrópolis de Convergencia (cruce de las Naciones)'}
+UBICACIÓN: ${state?.location || 'Metrópolis de Convergencia'}
 REGIÓN: ${state?.region || 'Tierras Neutrales'}
-ESTADO DEL JUGADOR: Fatiga ${state?.fatigue || 'leve'} | Dinero ${state?.money || '10 monedas'} | Presión ${state?.current_pressure || 'ninguna YET'}
+ESTADO: Fatiga ${state?.fatigue || 'leve'} | Dinero ${state?.money || '10'} | Presión: ${state?.current_pressure || 'ninguna'}
 
-PRESIONES NARRATIVAS ACTIVAS (MUNDO QUE RESPIRA):
-${state?.current_pressure || 'Se rumorea que algo se mueve en las sombras...'}
+NPCs VIVOS (con sus propios objetivos):
+${(npcs || []).slice(0, 3).map(n => `- ${n.npc_name}: ${n.goal}`).join('\n')}
 
-NPCs ACTIVOS CON AGENDAS PROPIAS:
-${(npcs || []).slice(0, 5).map(n => `• ${n.npc_name} (${n.role}): Busca ${n.goal || 'objetivos oscuros'}. ${n.personality || ''}`).join('\n')}
-${(npcs || []).length === 0 ? '• Sifu Wren Kobo (Maestro de Combate): Busca reclutas para resistencia. Sospecha de ti.\n• Elder Panya (Sabia): Tuvo una visión. Necesita a alguien de confianza.' : ''}
+CONVERSACIÓN RECIENTE (últimos 3 turnos):
+${(recentMessages || []).slice(0, 3).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Mundo'}: ${m.content.slice(0, 60)}`).join('\n')}
 
-CONVERSACIÓN RECIENTE:
-${(recentMessages || []).slice(0, 5).reverse().map(m => \`\${m.role === 'user' ? '[JUGADOR]' : '[MUNDO]'}: \${m.content.substring(0, 80)}\`).join('\n')}
+ACCIÓN: "${cleanMessage}"
 
-═══════════════════════════════════════════════════════════════
+TU JOB: Escribe narración vivida. 2-3 párrafos con texturas, nombres, emociones.
+- Muestra CONSECUENCIAS: ¿Quién lo ve? ¿Quién reacciona?
+- El mundo EXISTE SIN el jugador: NPCs avanzan objetivos
+- Menciona una PRESIÓN: recurso escaso, peligro, tiempo, relación
+- SÉ ESPECÍFICO: No digas "encuentras pista". Di "encuentras moneda ardiente del Tribunal"
 
-AHORA: Jugador intenta: "${cleanMessage}"
-
-REQUERIMIENTOS DE LA NARRACIÓN:
-1. CONSECUENCIAS INMEDIATAS: Cada acción tiene 3-5 efectos secundarios. ¿Quién lo ve? ¿Quién se molesta? ¿Qué oportunidad se abre/cierra?
-
-2. EL MUNDO EXISTE SIN ÉL: Los NPCs tienen planes que avanzan INDEPENDIENTE. Relaciones cambian entre ellos. 
-   Ej: "Mientras estabas en la taberna, Sifu Wren fue arrestado por Reconciliación" o "Elder Panya encontró lo que buscaba"
-
-3. OPRIME PERO NO ASFIXIES: Presión narrativa = recursos bajos, opciones difíciles, tiempo contado, relaciones en riesgo. 
-   NO es frustración de Game Over. Es DRAMA que IMPORTA.
-
-4. ESPECIFICIDAD: No digas "encuentras una pista". Di "encuentras un medallón del Tribunal Ember, aún caliente" 
-   Di nombres, temperaturas, aromas, sangre si la hay, mojado si llueve. TEXTURAS.
-
-5. CADA FACCIÓN AVANZA EN TRASFONDO: Describe un movimiento CONCRETO. 
-   Ej: "Reconciliación recruta en muelles", "Linterna Road congela préstamo a comerciante", etc.
-
-6. PRESIÓN DURA CUANDO MERECIDA: Si el jugador hace algo audaz/estúpido, HAZLO CONTAR. 
-   Puede ser con cicatrices, dinero perdido, favores adeudados, enemigos nuevos. Consecuencias DURAN.
-
-7. OPORTUNIDADES: Pero también deja abiertas puertas. Alguien lo nece sita. Hay dinero fácil. Una alianza posible.
-
-8. TONO: Oscuro pero con chispa de esperanza. Ritmo: 2 párrafos de acción + 1 de consecuencias.
-
-RESPUESTA EN JSON:
+RESPONDE SOLO EN JSON (sin explicación):
 {
-  "narration": "2-4 párrafos. Vividos. Específicos. Con consecuencias que IMPORTAN.",
+  "narration": "Narración vivida con consecuencias. 2-3 párrafos.",
   "state_patch": {
-    "location": "nueva ubicación si se movió (ej: 'Callejón Sur, detrás del mercado negro')",
-    "region": "nueva región si se movió",
-    "fatigue": "nuevo nivel (leve/moderada/alta) si cambió",
-    "money": "dinero nuevo si cambió (ej: '8 monedas, 1 deuda pendiente')",
-    "current_pressure": "presión narrativa activa (ej: 'Cazador del Tribunal Ember te busca: precio 50 monedas')"
+    "location": "nuevo lugar si cambió (o null)",
+    "region": "nueva región si cambió (o null)", 
+    "fatigue": "nuevo nivel si cambió (o null)",
+    "money": "dinero nuevo si cambió (o null)",
+    "current_pressure": "presión narrativa si surgió (o null)"
   }
-}
-`;
+}`;
 
       let structured;
       try {
