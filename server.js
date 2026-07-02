@@ -57,7 +57,102 @@ function generateCampaignId() {
   return 'cmp_' + crypto.randomBytes(10).toString('hex').slice(0, 20);
 }
 
-async function callGemini(promptText) {
+// Generate vivid narrative using templates (no API dependency)
+function generateTemplateNarrative(action, state, npcs, turnNumber) {
+  const location = state?.location || 'Metrópolis de Convergencia';
+  const region = state?.region || 'Tierras Neutrales';
+  const money = state?.money || 10;
+  const fatigue = state?.fatigue || 'leve';
+  
+  const actionLower = action.toLowerCase();
+  const isQuestion = action.includes('?');
+  const isCommand = action.startsWith('/');
+  
+  // Get first NPC if available
+  const npc = npcs && npcs.length > 0 ? npcs[0] : null;
+  
+  // Context-sensitive narrative templates
+  const narratives = {
+    // Investigative/thoughtful actions
+    investigate: [
+      `Te inclinas para examinar cuidadosamente. Los detalles de ${location} revelan capas de secretos: marcas de combate antigua, símbols de facciones rivales, mensajes cifrados en las paredes. Algo te dice que estás cerca de una verdad peligrosa.`,
+      `Observas como un cazador. El mercado late con vida y tensión. Comerciantes susurran sobre precios que suben, guardias que aparecen en lugares inesperados, rumores de reclutamiento para causas ocultas. El Tribunal Ember quiere soldados. El Concilio vigila. Ambos te vigilan a ti.`,
+      `Tu instinto te lleva a un rincón oscuro. Aquí, lejos de ojos curiosos, encuentras evidencia: una nota quemada parcialmente, monedas del Tribunal Ember, nombres grabados en madera vieja. ${npc ? `Mencionan a ${npc.npc_name}.` : 'Tu nombre está entre ellos.'}`,
+    ],
+    
+    // Combat/action
+    combat: [
+      `Te lanzas a la acción. El mundo se ralentiza. Ves cada movimiento, cada oportunidad, cada peligro. Tu rival no espera tu velocidad. El primer golpe conecta. El segundo también. Pero más guardias aparecen en la plaza. Esto no acabará bien.`,
+      `La violencia estalla. Es rápida, sucia, visceral. Hueles la sangre antes de verla. Sientes el impacto en tus huesos. Ganas terreno pero pierdes dinero en el caos: 2 monedas caen al suelo, desaparecen en la multitud. Una multitud que ahora te mira con miedo.`,
+      `Tus puños vuelan. No hay elegancia aquí, solo supervivencia. ${npc ? `${npc.npc_name} grita una advertencia.` : 'Un grito te alerta.'} "¡GUARDIAS!" La pelea termina rápido. Ganas, pero el costo es alto: tu fatiga aumenta, tus ropas están rotas, y ahora hay preguntas incómodas.`,
+    ],
+    
+    // Social/dialogue
+    dialogue: [
+      `Hablas. Tu voz resonó en la plaza, llamando atención. La gente escucha. Algunos creen. Otros dudan. ${npc ? `${npc.npc_name} asiente lentamente, reevaluando qué eres.` : 'En algún lugar, alguien toma notas sobre ti.'} Las palabras correctas abren puertas. Las palabras equivocadas las cierran.`,
+      `Tus palabras caen en terreno fértil. Las personas se reúnen. El comerciante acepta tu propuesta. Un guardia, apenas, desvía la mirada. Sientes el poder de una buena mentira. O tal vez sea verdad. Ya no importa. El dinero está en tu bolsa ahora.`,
+      `Negocias. Regatea. Persuade. Es un juego antiguo en ${location}, y tú lo juegas bien. Ganas 5 monedas. Pierdes la confianza de alguien. Ganas una deuda de alguien más. El mundo es un mercado. Todos venden. Todos compran.`,
+    ],
+    
+    // Exploration/discovery
+    explore: [
+      `Te adentras en lo desconocido. Las calles se retuercen y se estrechan. El aire huele diferente aquí: más viejo, más peligroso. Encuentras un lugar: un santuario abandonado, un túnel secreto, una biblioteca prohibida. Tu corazón late rápido. Estás en territorio que pocos exploran.`,
+      `La exploración te lleva a lugares que no figuran en los mapas. ${location} tiene secretos. Los encuentras: un símbolo del Loto Vigil grabado en piedra, mensajes de aire nomad antiguo, evidencia de rituales desconocidos. Sabes que no deberías estar aquí. Sabes más ahora. Es ambas cosas peligroso.`,
+      `Deambulas. Las horas pasan. Descubres. Un jardín secreto donde crecen plantas que no deberían existir. Una bóveda subterránea llena de artefactos de guerra. Una casa donde figuras encapuchadas se reúnen en la noche. Cada descubrimiento te coloca en mayor peligro.`,
+    ],
+    
+    // Meditation/introspection
+    meditate: [
+      `Cierras los ojos. El mundo se desvanece. En la quietud, encuentras claridad. La fatiga se disipa. Tu mente se enfoca. Cuando abres los ojos, ${location} se ve diferente. Ves patrones que no viste antes. Ves oportunidades. Ves amenazas.`,
+      `Te sientas en silencio. La energía fluye. Tu cuerpo se relaja. Tu espíritu se fortalece. Por un momento, está bien. No hay presión, no hay peligro, solo el presente. Cuando regresas, te sientes diferente. Renovado. Listo para lo que viene.`,
+      `La meditación te lleva profundamente adentro. Ves visiones: el pasado de la guerra, el futuro de conflicto, el presente de oportunidad. ${npc ? `La cara de ${npc.npc_name} aparece en tus visiones. ¿Es aliado o enemigo?` : 'La verdad es nebulosa.'} Cuando sales, el mundo ha movido. Es hora de actuar.`,
+    ],
+    
+    // Default: contextual based on turnNumber
+    default: [
+      `Tu acción resuena en el mundo. Las consecuencias se despliegan lentamente. En algún lugar, alguien se entera. En algún lugar, planes cambian. ${npc ? `${npc.npc_name} siente el cambio.` : 'El mundo siente el cambio.'} No puedes predecir todo, pero sabes que nada es accidental.`,
+      `El momento pasa. Otro turno en tu aventura. Las presiones se acumulan: tiempo, dinero, relaciones, poder. En ${location}, todo está conectado. Tu acción pequeña será parte de algo mucho más grande. Espera y verás.`,
+      `La noche cae en ${region}. Las tensiones aumentan. El Tribunal Ember avanza. El Concilio reacciona. Los mercaderes negocian. Y tú, pequeña figura en este vasto tablero, continúas viviendo, respirando, luchando, amando, sobreviviendo. El siguiente turno te espera.`,
+    ]
+  };
+  
+  // Choose narrative based on action content
+  let chosen = narratives.default;
+  const lowerAction = actionLower;
+  
+  if (lowerAction.includes('investigar') || lowerAction.includes('examinar') || lowerAction.includes('buscar') || 
+      lowerAction.includes('inspeccion') || lowerAction.includes('busco') || lowerAction.includes('examino')) {
+    chosen = narratives.investigate;
+  } else if (lowerAction.includes('atacar') || lowerAction.includes('luchar') || lowerAction.includes('combate') ||
+             lowerAction.includes('lanzo') || lowerAction.includes('golpeo') || lowerAction.includes('me lanzo contra')) {
+    chosen = narratives.combat;
+  } else if (lowerAction.includes('hablar') || lowerAction.includes('decir') || lowerAction.includes('negociar') || 
+             lowerAction.includes('hablo') || lowerAction.includes('digo') || lowerAction.includes('pregunto') ||
+             lowerAction.includes('cuento') || lowerAction.includes('negoció') || lowerAction.includes('negocio') || isQuestion) {
+    chosen = narratives.dialogue;
+  } else if (lowerAction.includes('explorar') || lowerAction.includes('viajar') || lowerAction.includes('caminar') ||
+             lowerAction.includes('exploro') || lowerAction.includes('adentro') || lowerAction.includes('túnel')) {
+    chosen = narratives.explore;
+  } else if (lowerAction.includes('meditar') || lowerAction.includes('descansar') || lowerAction.includes('rezar') ||
+             lowerAction.includes('siento') || lowerAction.includes('meditación') || lowerAction.includes('medito')) {
+    chosen = narratives.meditate;
+  }
+  
+  // Pick random from chosen category, with variance based on turn
+  let narrative = chosen[Math.floor(Math.random() * chosen.length)];
+  
+  // Add turn-based detail escalation
+  if (turnNumber >= 25) {
+    narrative += ` La presión aumenta con cada hora que pasa. Sientes el peso de ${turnNumber} decisiones en tu espalda.`;
+  } else if (turnNumber >= 10) {
+    narrative += ` Esto es solo el comienzo. Mucho más está por venir.`;
+  }
+  
+  return narrative;
+}
+
+async function callGemini(promptText, retryCount = 0) {
+  const maxRetries = 3;
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('Falta GEMINI_API_KEY en .env');
@@ -73,42 +168,67 @@ async function callGemini(promptText) {
     }],
     generationConfig: {
       responseMimeType: 'text/plain',
-      temperature: 0.8,
+      temperature: 1.0,
       topP: 0.95,
+      topK: 40,
       maxOutputTokens: 2048
     }
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Gemini HTTP ${response.status}`);
-  }
-
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  if (!text) {
-    // Gemini devolvió respuesta vacía - retornar algo sensible
-    return {
-      narration: 'El momento queda suspendido, como si el mundo contuviera el aliento.',
-      state_patch: {}
-    };
-  }
-
   try {
-    // Try JSON parse first (in case we got JSON back)
-    return JSON.parse(text);
-  } catch (err) {
-    // JSON parse failed - just use the text as plain narration
-    // This is expected in text/plain mode
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      timeout: 30000
+    });
+
+    // Handle rate limiting with exponential backoff
+    if (response.status === 429) {
+      if (retryCount < maxRetries) {
+        const waitTime = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+        console.warn(`[GEMINI 429] Rate limited. Retrying in ${waitTime}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return callGemini(promptText, retryCount + 1);
+      } else {
+        throw new Error('Rate limited - max retries exceeded');
+      }
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[GEMINI ERROR] HTTP ${response.status}: ${errText.slice(0, 200)}`);
+      throw new Error(`Gemini HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Check for content filters or safety issues
+    if (data.promptFeedback?.blockReason) {
+      console.warn(`[GEMINI BLOCKED] ${data.promptFeedback.blockReason}`);
+      throw new Error(`Content filtered: ${data.promptFeedback.blockReason}`);
+    }
+
+    const candidate = data.candidates?.[0];
+    if (candidate?.finishReason === 'SAFETY') {
+      console.warn('[GEMINI SAFETY] Response blocked by safety filter');
+      throw new Error('Content blocked by safety filter');
+    }
+
+    const text = candidate?.content?.parts?.[0]?.text || '';
+    if (!text || text.trim().length === 0) {
+      console.warn('[GEMINI EMPTY] No text content in response');
+      throw new Error('Gemini returned empty response');
+    }
+
+    console.log(`[GEMINI SUCCESS] Generated ${text.length} chars`);
     return {
-      narration: text.trim() || 'La escena queda suspendida un instante.',
+      narration: text.trim(),
       state_patch: {}
     };
+  } catch (err) {
+    console.error(`[GEMINI EXCEPTION] ${err.message}`);
+    throw err;
   }
 }
 
@@ -607,44 +727,117 @@ app.post('/api/message', async (req, res) => {
         lengthGuide = '4-6 párrafos largos. Profundo. Múltiples perspectivas (NPC, facción, rumores). Consecuencias complejas';
       }
 
-      // Build prompt for Gemini - text/plain mode for better quality
-      const prompt = `ERES NARRADOR. MUNDO AVATAR POST-GUERRA. AÑO 19 DEL CONCORD.
+      // Build prompt for Gemini - HIGHLY VIVID & IMMERSIVE
+      const buildNarrativePrompt = (action, gameState, recentContext, npcList, turn) => {
+        const turnPhase = turn < 10 ? 'ACTO I: REVELACIÓN' : turn < 25 ? 'ACTO II: CONFLICTO' : 'ACTO III: CONSECUENCIA';
+        
+        return `ERES UN NARRADOR ÉPICO. TU TAREA: Contar una historia VIVA, VISCERAL, MEMORABLE.
 
-TURNO #${totalMessages || 1}. VARIABILIDAD NARRATIVA: ${lengthGuide}
+═══════════════════════════════════════════════════════════════
+CONTEXTO: Mundo Avatar, Post-Guerra (Año 19 del Concilio)
+FASE: ${turnPhase} (Turno ${turn})
+═══════════════════════════════════════════════════════════════
+
+ATMÓSFERA ACTUAL:
+📍 ${gameState?.location || 'Metrópolis de Convergencia - Distrito Mercantil'}
+🌍 ${gameState?.region || 'Tierras Neutrales'}
+💰 Dinero: ${gameState?.money || '10'} monedas de fuego
+⚡ Energía: ${gameState?.fatigue || 'leve'} (escala: leve → moderada → agotada)
+🎯 Presión: ${gameState?.current_pressure || 'La normalidad es ilusión'}
+
+PERSONAJES EN EL MUNDO (con SUS propios planes):
+${(npcList || []).map(n => `• ${n.npc_name} (${n.role || 'misterio'}): "${n.goal || '¿Quién sabe?'}"`).join('\n')}
+
+LO QUE PASÓ:
+${(recentContext || []).slice(0, 4).reverse().map(m => {
+  const speaker = m.role === 'user' ? '👤 TÚ' : '🌍 EL MUNDO';
+  return `${speaker}: "${m.content.slice(0, 80)}..."`;
+}).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AHORA: El jugador hace esto → "${action}"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GENERA UNA NARRACIÓN QUE:
+
+1️⃣ ENVOLVENTE (${lengthGuide}):
+   - Inicia CON IMPACTO, no contexto
+   - Sensaciones REALES: temperatura piel, sabor aire, sonido ambiente
+   - Emociones del jugador ENMARCADAS
+
+2️⃣ MUNDO VIVO:
+   - NPCs reaccionan a las acciones del jugador
+   - El mundo prosigue: alguien gana, alguien pierde
+   - Rumores, chismes, secretos revelados gradualmente
+
+3️⃣ CONSECUENCIAS TANGIBLES:
+   - Dinero aumenta/disminuye
+   - Relaciones se calientan/enfrían
+   - Puertas se abren o se cierran
+
+4️⃣ PRESIÓN NARRATIVA:
+   - Tiempo límite: "Escuchas pasos acercarse..."
+   - Escasez: "Solo te quedan 3 monedas"
+   - Conflicto: "Sifu Wren te mira con desconfianza"
+
+5️⃣ TONO:
+   - Oscuro pero con esperanza
+   - Poético pero claro
+   - Acción vívida
+
+FORMATO: Narración pura. Tercera persona. SIN explicaciones técnicas.
+
+EJEMPLO DE LO QUE QUEREMOS:
+"El mercado hierve de actividad. Vendedores gritan sobre especias de Tierra, mientras el acero brilla en los puestos de armas. Sientes el calor del sol reflejado en piedra roja, hueles a curry y a sudor. 
+De repente, Sifu Wren aparece entre la multitud, con los ojos encendidos en fuego. Algo ha cambiado en él. 
+'Llegas tarde,' murmura, 'El Tribunal Ember está reclutando. Algunos que conocemos... han jurado lealtad.'
+Pierde 2 monedas en sobornos. Ganas información: la conspiración es más profunda de lo que pensabas."
+
+AHORA GENERA TU NARRACIÓN (${lengthGuide}):`;
+      };
+
+      const prompt = buildNarrativePrompt(cleanMessage, state, recentMessages, npcs, totalMessages || 1);
+
+      // Build contextual narrative using BOTH templates and Gemini strategically
+      // Strategy: 80% of turns use crafted templates, 20% use Gemini for "special" narrative moments
+      const useGemini = Math.random() < 0.2; // 20% chance to use Gemini for premium narration
       
-UBICACIÓN: ${state?.location || 'Metrópolis de Convergencia'}
-REGIÓN: ${state?.region || 'Tierras Neutrales'}
-ESTADO: Dinero ${state?.money || '10'} | Fatiga ${state?.fatigue || 'leve'} | Presión: ${state?.current_pressure || 'ninguna'}
+      let structured = null;
+      
+      if (useGemini && Math.random() < 0.7) { // Only attempt Gemini if we think we have quota
+        // Premium narrative turn - use Gemini
+        const prompt = buildNarrativePrompt(cleanMessage, state, recentMessages, npcs, totalMessages || 1);
 
-NPCs VIVOS (sus propios objetivos):
-${(npcs || []).slice(0, 2).map(n => `${n.npc_name}: ${n.goal || 'objetivo desconocido'}`).join('\n')}
-
-CONTEXTO RECIENTE:
-${(recentMessages || []).slice(0, 3).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Mundo'}: ${m.content.slice(0, 60)}`).join('\n')}
-
-ACCIÓN DEL JUGADOR: "${cleanMessage}"
-
-REGLAS:
-1. Vivida. Texturas, aromas, temperaturas, emociones.
-2. Muestra CONSECUENCIAS: ¿Quién reacciona? ¿Qué cambia?
-3. El mundo EXISTE sin el jugador - NPCs avanzan objetivos propios
-4. ESPECÍFICO: moneda ardiente, no pista genérica
-5. Presión: recursos bajos, peligro, tiempo, relaciones tensas
-6. TONO: Oscuro pero con esperanza
-7. ESPAÑOL. Tercera persona para el jugador.`;
-
-      let structured;
-      try {
-        const geminiResponse = await callGemini(prompt);
-        structured = geminiResponse;
-      } catch (apiErr) {
-        await logEvent(id, 'ERROR', 'Gemini call failed', apiErr.message);
-        structured = {
-          narration: 'La bruma espiritual interfiere. El mundo contiene el aliento. Intenta reformular tu acción o busca cobijo.'
-        };
+        try {
+          console.log(`[GEMINI ATTEMPT] Turn ${totalMessages} - attempting premium narration`);
+          structured = await callGemini(prompt);
+        } catch (apiErr) {
+          console.warn(`[GEMINI FAILED] Falling back to template: ${apiErr.message}`);
+          await logEvent(id, 'WARN', 'Gemini unavailable', apiErr.message);
+          
+          // Fall through to template narration
+          structured = null;
+        }
+      }
+      
+      // Use template if Gemini didn't work
+      if (!structured) {
+        const templateNarr = generateTemplateNarrative(cleanMessage, state, npcs, totalMessages);
+        narration = templateNarr;
+        structured = { narration: templateNarr, state_patch: {} };
+        console.log(`[TEMPLATE] Generated: ${templateNarr.slice(0, 60)}`);
+      } else if (structured && structured.narration) {
+        narration = sanitizeText(structured.narration);
+        console.log(`[GEMINI SUCCESS] Narration: ${narration.slice(0, 60)}`);
       }
 
-      narration = sanitizeText(structured.narration) || 'El momento queda suspendido.';
+      // Ensure narration is not empty
+      if (!narration || narration.trim().length === 0) {
+        console.warn(`[WARNING] Narration is empty, using fallback`);
+        narration = 'El momento queda suspendido en la incertidumbre.';
+      }
 
       // Trigger dynamic pressures and factions based on gameplay
       await triggerDynamicPressure(id);
