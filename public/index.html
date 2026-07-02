@@ -109,31 +109,42 @@
           <div id="chatBox" class="chat-box" aria-live="polite"></div>
           <div id="errorBox" class="error-box hidden"></div>
 
-          <!-- Barra de comandos combinables -->
+          <!-- Barra de comandos con dropdowns -->
           <div class="commands-bar">
-            <div class="commands-group">
-              <span class="commands-label">Acción:</span>
-              <button class="cmd-btn" data-cmd="/hacer">Hacer</button>
-              <button class="cmd-btn" data-cmd="/decir">Decir</button>
-              <button class="cmd-btn" data-cmd="/examinar">Examinar</button>
-              <button class="cmd-btn" data-cmd="/atacar">Atacar</button>
-              <button class="cmd-btn" data-cmd="/usar">Usar</button>
-              <button class="cmd-btn" data-cmd="/hablar">Hablar</button>
-              <button class="cmd-btn" data-cmd="/buscar">Buscar</button>
+            <!-- Dropdown ACCIÓN -->
+            <div class="dropdown">
+              <button class="dropdown-toggle btn secondary" data-dropdown="accion">⚙️ ACCIÓN ▼</button>
+              <div id="accion-menu" class="dropdown-menu">
+                <button class="dropdown-item" data-cmd="/hacer">Hacer</button>
+                <button class="dropdown-item" data-cmd="/decir">Decir</button>
+                <button class="dropdown-item" data-cmd="/examinar">Examinar</button>
+                <button class="dropdown-item" data-cmd="/atacar">Atacar</button>
+                <button class="dropdown-item" data-cmd="/usar">Usar</button>
+                <button class="dropdown-item" data-cmd="/hablar">Hablar</button>
+                <button class="dropdown-item" data-cmd="/buscar">Buscar</button>
+              </div>
             </div>
-            <div class="commands-group">
-              <span class="commands-label">Avanzado:</span>
-              <button class="cmd-btn advanced" data-cmd="/combate">⚔️ Combate</button>
-              <button class="cmd-btn advanced" data-cmd="/negociar">💬 Negociar</button>
-              <button class="cmd-btn advanced" data-cmd="/estudiar">📖 Estudiar</button>
-              <button class="cmd-btn advanced" data-cmd="/viajar">🛣️ Viajar</button>
-              <button class="cmd-btn advanced" data-cmd="/investigar">🔍 Investigar</button>
+
+            <!-- Dropdown AVANZADO -->
+            <div class="dropdown">
+              <button class="dropdown-toggle btn secondary" data-dropdown="avanzado">🎭 AVANZADO ▼</button>
+              <div id="avanzado-menu" class="dropdown-menu">
+                <button class="dropdown-item" data-cmd="/combate">⚔️ Combate</button>
+                <button class="dropdown-item" data-cmd="/negociar">💬 Negociar</button>
+                <button class="dropdown-item" data-cmd="/estudiar">📖 Estudiar</button>
+                <button class="dropdown-item" data-cmd="/viajar">🛣️ Viajar</button>
+                <button class="dropdown-item" data-cmd="/investigar">🔍 Investigar</button>
+              </div>
             </div>
-            <div class="commands-group">
-              <span class="commands-label">Info:</span>
-              <button class="cmd-btn info" data-cmd="/estado">Estado</button>
-              <button class="cmd-btn info" data-cmd="/inventario">Inventario</button>
-              <button class="cmd-btn info" data-cmd="/mapa">Mapa</button>
+
+            <!-- Dropdown INFO -->
+            <div class="dropdown">
+              <button class="dropdown-toggle btn secondary" data-dropdown="info">ℹ️ INFO ▼</button>
+              <div id="info-menu" class="dropdown-menu">
+                <button class="dropdown-item" data-cmd="/estado">Estado</button>
+                <button class="dropdown-item" data-cmd="/inventario">Inventario</button>
+                <button class="dropdown-item" data-cmd="/mapa">Mapa</button>
+              </div>
             </div>
           </div>
 

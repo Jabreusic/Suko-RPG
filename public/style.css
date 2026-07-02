@@ -352,74 +352,90 @@ main.app-shell {
 
 .commands-bar {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem;
   background: rgba(15, 23, 42, 0.6);
   border-top: 1px solid rgba(100, 116, 139, 0.2);
   border-radius: 6px;
-}
-
-.commands-group {
-  display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+  justify-content: center;
 }
 
-.commands-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 50px;
+/* DROPDOWN MENUS */
+.dropdown {
+  position: relative;
 }
 
-.cmd-btn {
-  padding: 0.4rem 0.75rem;
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  border-radius: 4px;
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--color-primary);
-  font-size: 0.75rem;
-  font-weight: 600;
+.dropdown-toggle {
+  padding: 0.6rem 0.8rem !important;
+  font-size: 0.9rem !important;
+  background: rgba(99, 102, 241, 0.2) !important;
+  border: 1px solid rgba(99, 102, 241, 0.4) !important;
+  color: var(--color-primary) !important;
   cursor: pointer;
-  transition: all 0.2s;
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
-.cmd-btn:hover {
-  background: rgba(99, 102, 241, 0.3);
-  border-color: var(--color-primary);
+.dropdown-toggle:hover {
+  background: rgba(99, 102, 241, 0.3) !important;
+  border-color: var(--color-primary) !important;
   transform: translateY(-1px);
 }
 
-.cmd-btn:active {
-  transform: translateY(0);
-  background: rgba(99, 102, 241, 0.5);
+.dropdown-toggle.active {
+  background: rgba(99, 102, 241, 0.4) !important;
+  border-color: var(--color-primary) !important;
 }
 
-.cmd-btn.info {
-  border-color: rgba(139, 92, 246, 0.4);
-  background: rgba(139, 92, 246, 0.15);
-  color: var(--color-secondary);
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 150px;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  border-radius: 6px;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
-.cmd-btn.info:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: var(--color-secondary);
+.dropdown-menu.active {
+  display: flex;
+  flex-direction: column;
 }
 
-.cmd-btn.advanced {
-  border-color: rgba(239, 68, 68, 0.4);
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--color-error);
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
-.cmd-btn.advanced:hover {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: var(--color-error);
+.dropdown-item:hover {
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--color-primary);
+  padding-left: 1.2rem;
+}
+
+.dropdown-item:active {
+  background: rgba(99, 102, 241, 0.35);
+}
+
+/* Legacy cmd-btn (para compatibilidad) */
+.cmd-btn {
+  display: none;
 }
 
 .btn {
