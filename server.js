@@ -149,6 +149,64 @@ async function logEvent(campaignId, level, message, raw) {
   });
 }
 
+// Generar presión narrativa dinámica durante gameplay
+async function triggerDynamicPressure(campaignId) {
+  // 40% de probabilidad de generar nueva presión
+  if (Math.random() > 0.4) return;
+
+  const pressureTypes = [
+    { type: 'political', desc: 'Concilio detecta movimiento de Tribunal Ember en tu región' },
+    { type: 'economic', desc: 'Precio de alimentos aumenta por restricción comercial' },
+    { type: 'personal', desc: 'Un NPC te busca con urgencia' },
+    { type: 'magical', desc: 'Anomalía espiritual reportada en las cercanías' },
+    { type: 'time', desc: 'Plazo importante se acerca rápidamente' }
+  ];
+
+  const chosen = pressureTypes[Math.floor(Math.random() * pressureTypes.length)];
+  
+  try {
+    await supabase.from('narrative_pressure').insert({
+      campaign_id: campaignId,
+      pressure_type: chosen.type,
+      description: chosen.desc,
+      severity: Math.floor(Math.random() * 5) + 1,
+      created_at: new Date().toISOString()
+    });
+  } catch (err) {
+    console.log('[TRIGGER PRESSURE ERROR]', err.message);
+  }
+}
+
+// Generar actividad factional
+async function triggerFactionActivity(campaignId) {
+  // 25% de probabilidad
+  if (Math.random() > 0.25) return;
+
+  const factions = [
+    { faction: 'Tribunal Ember', goal: 'Recluta en mercados por la noche' },
+    { faction: 'Concilio Reconciliación', goal: 'Establece oficina de gobierno local' },
+    { faction: 'Vigilia del Loto', goal: 'Investiga corrupción en templos' },
+    { faction: 'Recolectores de Arboledas', goal: 'Protesta contra minería ilegal' },
+    { faction: 'Linterna Road', goal: 'Expande red de tráfico de favores' }
+  ];
+
+  const chosen = factions[Math.floor(Math.random() * factions.length)];
+
+  try {
+    await supabase.from('faction_activity').insert({
+      campaign_id: campaignId,
+      faction_name: chosen.faction,
+      current_goal: chosen.goal,
+      next_step: 'Monitorear desarrollo',
+      progress_pct: Math.floor(Math.random() * 40) + 10,
+      revealed: false,
+      last_updated: new Date().toISOString()
+    });
+  } catch (err) {
+    console.log('[TRIGGER FACTION ERROR]', err.message);
+  }
+}
+
 function processCommandAction(message, state) {
   // Procesa comandos básicos y avanzados
   const msg = message.toLowerCase().trim();
@@ -535,32 +593,45 @@ app.post('/api/message', async (req, res) => {
         .eq('campaign_id', id)
         .limit(12);
 
+      // Count total messages to determine response variability
+      const { count: totalMessages } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_id', id);
+
+      // Variability: early game = short, mid game = medium, late game = LONG
+      let lengthGuide = '2-3 párrafos cortos';
+      if (totalMessages >= 10 && totalMessages < 25) {
+        lengthGuide = '3-4 párrafos moderados con más detalles';
+      } else if (totalMessages >= 25) {
+        lengthGuide = '4-6 párrafos largos. Profundo. Múltiples perspectivas (NPC, facción, rumores). Consecuencias complejas';
+      }
+
       // Build prompt for Gemini - text/plain mode for better quality
       const prompt = `ERES NARRADOR. MUNDO AVATAR POST-GUERRA. AÑO 19 DEL CONCORD.
+
+TURNO #${totalMessages || 1}. VARIABILIDAD NARRATIVA: ${lengthGuide}
       
 UBICACIÓN: ${state?.location || 'Metrópolis de Convergencia'}
 REGIÓN: ${state?.region || 'Tierras Neutrales'}
-CLIMA: Otoño tardío. Humedad. Polvo de ciudades viejas.
 ESTADO: Dinero ${state?.money || '10'} | Fatiga ${state?.fatigue || 'leve'} | Presión: ${state?.current_pressure || 'ninguna'}
 
 NPCs VIVOS (sus propios objetivos):
 ${(npcs || []).slice(0, 2).map(n => `${n.npc_name}: ${n.goal || 'objetivo desconocido'}`).join('\n')}
 
-FACCIONES ACTIVAS EN TRASFONDO:
-- Tribunal Ember: busca restaurar dominio del fuego
-- Concilio Reconciliación: construye gobierno unificado  
-- Vigilia del Loto: guardianes espirituales
+CONTEXTO RECIENTE:
+${(recentMessages || []).slice(0, 3).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Mundo'}: ${m.content.slice(0, 60)}`).join('\n')}
 
 ACCIÓN DEL JUGADOR: "${cleanMessage}"
 
-REGLAS NARRATIVAS:
-1. Narración VIVIDA. 2-3 párrafos. Texturas, aromas, temperaturas.
-2. Muestra CONSECUENCIAS: ¿Quién lo ve? ¿Quién reacciona?
-3. El mundo EXISTE sin el jugador - NPCs avanzan objetivos
-4. SÉ ESPECÍFICO: no "encuentras pista", di "encuentras moneda ardiente"
-5. Menciona una presión: recurso escaso, peligro, tiempo, o relación
-6. TONO: Oscuro pero con esperanza. Ritmo: acción luego consecuencias.
-7. IDIOMA: Español. Narra en tercera persona al jugador.`;
+REGLAS:
+1. Vivida. Texturas, aromas, temperaturas, emociones.
+2. Muestra CONSECUENCIAS: ¿Quién reacciona? ¿Qué cambia?
+3. El mundo EXISTE sin el jugador - NPCs avanzan objetivos propios
+4. ESPECÍFICO: moneda ardiente, no pista genérica
+5. Presión: recursos bajos, peligro, tiempo, relaciones tensas
+6. TONO: Oscuro pero con esperanza
+7. ESPAÑOL. Tercera persona para el jugador.`;
 
       let structured;
       try {
@@ -574,6 +645,10 @@ REGLAS NARRATIVAS:
       }
 
       narration = sanitizeText(structured.narration) || 'El momento queda suspendido.';
+
+      // Trigger dynamic pressures and factions based on gameplay
+      await triggerDynamicPressure(id);
+      await triggerFactionActivity(id);
 
       // Insert assistant message
       await supabase.from('messages').insert({
@@ -612,13 +687,27 @@ REGLAS NARRATIVAS:
       .eq('campaign_id', id)
       .single();
 
+    // Get current pressures/factions for UI
+    const { data: pressures } = await supabase
+      .from('narrative_pressure')
+      .select('*')
+      .eq('campaign_id', id)
+      .is('resolved_at', null);
+
+    const { data: factions } = await supabase
+      .from('faction_activity')
+      .select('*')
+      .eq('campaign_id', id);
+
     res.json({
       ok: true,
       campaign_id: id,
       narration,
       state: updatedState || {},
       inventory: (inventory || []).map(i => ({ name: i.item_name })),
-      locations: (locations || []).map(l => ({ name: l.location_name }))
+      locations: (locations || []).map(l => ({ name: l.location_name })),
+      pressures: pressures || [],
+      factions: factions || []
     });
   } catch (err) {
     await logEvent(req.body.campaignId || '', 'ERROR', 'handlePlayerMessage failed', err.message);
