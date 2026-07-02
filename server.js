@@ -92,21 +92,21 @@ async function callGemini(promptText) {
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   if (!text) {
-    throw new Error('Gemini devolvió respuesta vacía.');
-  }
-
-  // Temporary debug: log first 300 chars of Gemini response
-  if (!text.trim().startsWith('{')) {
-    console.log('[DEBUG] Gemini response NOT JSON:', text.substring(0, 300));
+    // Gemini devolvió respuesta vacía - retornar algo sensible
+    return {
+      narration: 'El momento queda suspendido, como si el mundo contuviera el aliento.',
+      state_patch: {}
+    };
   }
 
   try {
+    // Try JSON parse first (in case we got JSON back)
     return JSON.parse(text);
   } catch (err) {
-    // JSON parse failed - return the text as plain narration
-    // Since we're now using text/plain mode, this is expected
+    // JSON parse failed - just use the text as plain narration
+    // This is expected in text/plain mode
     return {
-      narration: text.trim(),
+      narration: text.trim() || 'La escena queda suspendida un instante.',
       state_patch: {}
     };
   }
