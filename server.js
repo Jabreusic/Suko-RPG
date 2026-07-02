@@ -525,6 +525,16 @@ app.post('/api/log', async (req, res) => {
   }
 });
 
+// Servir index.html para SPA routing
+app.get('/', (req, res) => {
+  res.sendFile(join(__dirname, 'web', 'index.html'));
+});
+
+// Fallback: todas las rutas no-API van a index.html (SPA)
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, 'web', 'index.html'));
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`SUKO RPG backend escuchando en http://localhost:${port}`);
