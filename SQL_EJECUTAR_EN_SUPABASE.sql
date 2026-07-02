@@ -1,6 +1,22 @@
 -- COPIAR TODO ESTO AL SUPABASE SQL EDITOR Y EJECUTAR
 -- https://app.supabase.com → SQL Editor → New Query
 
+CREATE TABLE IF NOT EXISTS npcs (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  campaign_id TEXT NOT NULL,
+  npc_name TEXT NOT NULL,
+  role TEXT,
+  goal TEXT,
+  personality TEXT,
+  location TEXT,
+  affinity INT DEFAULT 0,
+  revealed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id),
+  UNIQUE(campaign_id, npc_name)
+);
+CREATE INDEX IF NOT EXISTS idx_npcs_campaign ON npcs(campaign_id);
+
 CREATE TABLE IF NOT EXISTS narrative_pressure (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   campaign_id TEXT NOT NULL,

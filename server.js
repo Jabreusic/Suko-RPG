@@ -72,7 +72,7 @@ async function callGemini(promptText) {
       parts: [{ text: promptText }]
     }],
     generationConfig: {
-      responseMimeType: 'application/json',
+      responseMimeType: 'text/plain',
       temperature: 0.8,
       topP: 0.95,
       maxOutputTokens: 2048
@@ -95,13 +95,18 @@ async function callGemini(promptText) {
     throw new Error('Gemini devolvió respuesta vacía.');
   }
 
+  // Temporary debug: log first 300 chars of Gemini response
+  if (!text.trim().startsWith('{')) {
+    console.log('[DEBUG] Gemini response NOT JSON:', text.substring(0, 300));
+  }
+
   try {
     return JSON.parse(text);
   } catch (err) {
-    // JSON parse failed - Gemini likely didn't return valid JSON
-    // This is a known issue with complex prompts; fall back
+    // JSON parse failed - return the text as plain narration
+    // Since we're now using text/plain mode, this is expected
     return {
-      narration: 'La escena queda suspendida un instante.',
+      narration: text.trim(),
       state_patch: {}
     };
   }
@@ -530,49 +535,37 @@ app.post('/api/message', async (req, res) => {
         .eq('campaign_id', id)
         .limit(12);
 
-      // Build prompt for Gemini
-      const prompt = `ERES NARRADOR DE UN MUNDO OSCURO. AVATAR POST-GUERRA.
-
-MUNDO: Año 19 post-Concordia. Paz frágil. Extremistas de cada nación aún luchan.
-- Tribunal Ember: Quiere restaurar dominio del fuego
-- Concilio Reconciliación: Intenta gobierno unificado
-- Vigilia del Loto: Guardianes espirituales
-- Linterna Road: Crimen organizado
-- Capitanes Libres: Piratas
-
+      // Build prompt for Gemini - text/plain mode for better quality
+      const prompt = `ERES NARRADOR. MUNDO AVATAR POST-GUERRA. AÑO 19 DEL CONCORD.
+      
 UBICACIÓN: ${state?.location || 'Metrópolis de Convergencia'}
 REGIÓN: ${state?.region || 'Tierras Neutrales'}
-ESTADO: Fatiga ${state?.fatigue || 'leve'} | Dinero ${state?.money || '10'} | Presión: ${state?.current_pressure || 'ninguna'}
+CLIMA: Otoño tardío. Humedad. Polvo de ciudades viejas.
+ESTADO: Dinero ${state?.money || '10'} | Fatiga ${state?.fatigue || 'leve'} | Presión: ${state?.current_pressure || 'ninguna'}
 
-NPCs VIVOS (con sus propios objetivos):
-${(npcs || []).slice(0, 3).map(n => `- ${n.npc_name}: ${n.goal}`).join('\n')}
+NPCs VIVOS (sus propios objetivos):
+${(npcs || []).slice(0, 2).map(n => `${n.npc_name}: ${n.goal || 'objetivo desconocido'}`).join('\n')}
 
-CONVERSACIÓN RECIENTE (últimos 3 turnos):
-${(recentMessages || []).slice(0, 3).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Mundo'}: ${m.content.slice(0, 60)}`).join('\n')}
+FACCIONES ACTIVAS EN TRASFONDO:
+- Tribunal Ember: busca restaurar dominio del fuego
+- Concilio Reconciliación: construye gobierno unificado  
+- Vigilia del Loto: guardianes espirituales
 
-ACCIÓN: "${cleanMessage}"
+ACCIÓN DEL JUGADOR: "${cleanMessage}"
 
-TU JOB: Escribe narración vivida. 2-3 párrafos con texturas, nombres, emociones.
-- Muestra CONSECUENCIAS: ¿Quién lo ve? ¿Quién reacciona?
-- El mundo EXISTE SIN el jugador: NPCs avanzan objetivos
-- Menciona una PRESIÓN: recurso escaso, peligro, tiempo, relación
-- SÉ ESPECÍFICO: No digas "encuentras pista". Di "encuentras moneda ardiente del Tribunal"
-
-RESPONDE SOLO EN JSON (sin explicación):
-{
-  "narration": "Narración vivida con consecuencias. 2-3 párrafos.",
-  "state_patch": {
-    "location": "nuevo lugar si cambió (o null)",
-    "region": "nueva región si cambió (o null)", 
-    "fatigue": "nuevo nivel si cambió (o null)",
-    "money": "dinero nuevo si cambió (o null)",
-    "current_pressure": "presión narrativa si surgió (o null)"
-  }
-}`;
+REGLAS NARRATIVAS:
+1. Narración VIVIDA. 2-3 párrafos. Texturas, aromas, temperaturas.
+2. Muestra CONSECUENCIAS: ¿Quién lo ve? ¿Quién reacciona?
+3. El mundo EXISTE sin el jugador - NPCs avanzan objetivos
+4. SÉ ESPECÍFICO: no "encuentras pista", di "encuentras moneda ardiente"
+5. Menciona una presión: recurso escaso, peligro, tiempo, o relación
+6. TONO: Oscuro pero con esperanza. Ritmo: acción luego consecuencias.
+7. IDIOMA: Español. Narra en tercera persona al jugador.`;
 
       let structured;
       try {
-        structured = await callGemini(prompt);
+        const geminiResponse = await callGemini(prompt);
+        structured = geminiResponse;
       } catch (apiErr) {
         await logEvent(id, 'ERROR', 'Gemini call failed', apiErr.message);
         structured = {
