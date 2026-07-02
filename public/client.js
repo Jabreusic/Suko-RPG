@@ -30,6 +30,13 @@ function bindUi() {
     }
   });
 
+  // Botones de comandos
+  Array.prototype.forEach.call(document.querySelectorAll('.cmd-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      onCommandClick(btn);
+    });
+  });
+
   // Botones especiales del sidebar
   document.getElementById('estadoBtn').addEventListener('click', function () {
     document.getElementById('userInput').value = '/estado';
@@ -54,6 +61,27 @@ function bindUi() {
       onSend();
     });
   });
+}
+
+function onCommandClick(btn) {
+  const input = document.getElementById('userInput');
+  const cmd = btn.getAttribute('data-cmd');
+  const currentText = input.value.trim();
+
+  // Si el input ya contiene un comando, reemplazarlo o combinarlo
+  if (currentText.startsWith('/')) {
+    // Reemplazar el comando anterior
+    input.value = cmd + ' ';
+  } else {
+    // Agregar comando
+    if (currentText) {
+      input.value = cmd + ' ' + currentText;
+    } else {
+      input.value = cmd + ' ';
+    }
+  }
+
+  input.focus();
 }
 
 function bindSidebarTabs() {

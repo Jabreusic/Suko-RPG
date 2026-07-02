@@ -94,6 +94,27 @@
         <div class="chat card">
           <div id="chatBox" class="chat-box" aria-live="polite"></div>
           <div id="errorBox" class="error-box hidden"></div>
+
+          <!-- Barra de comandos combinables -->
+          <div class="commands-bar">
+            <div class="commands-group">
+              <span class="commands-label">Acción:</span>
+              <button class="cmd-btn" data-cmd="/hacer">Hacer</button>
+              <button class="cmd-btn" data-cmd="/decir">Decir</button>
+              <button class="cmd-btn" data-cmd="/examinar">Examinar</button>
+              <button class="cmd-btn" data-cmd="/atacar">Atacar</button>
+              <button class="cmd-btn" data-cmd="/usar">Usar</button>
+              <button class="cmd-btn" data-cmd="/hablar">Hablar</button>
+              <button class="cmd-btn" data-cmd="/buscar">Buscar</button>
+            </div>
+            <div class="commands-group">
+              <span class="commands-label">Info:</span>
+              <button class="cmd-btn info" data-cmd="/estado">Estado</button>
+              <button class="cmd-btn info" data-cmd="/inventario">Inventario</button>
+              <button class="cmd-btn info" data-cmd="/mapa">Mapa</button>
+            </div>
+          </div>
+
           <div class="input-row">
             <input id="userInput" type="text" placeholder="¿Qué haces?" maxlength="1200" />
             <button id="sendBtn" class="btn">Enviar</button>

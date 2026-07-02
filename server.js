@@ -129,6 +129,48 @@ async function logEvent(campaignId, level, message, raw) {
   });
 }
 
+function processCommandAction(message, state) {
+  // Procesa comandos combinables: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar
+  const msg = message.toLowerCase().trim();
+  
+  if (msg.startsWith('/decir')) {
+    const text = message.slice(6).trim();
+    return text ? `Dices en voz alta: "${text}"` : 'Abres la boca pero ningún sonido sale.';
+  }
+  
+  if (msg.startsWith('/examinar')) {
+    const target = message.slice(9).trim();
+    return target ? `Examinas cuidadosamente ${target}. Notas detalles interesantes...` : 'Miras a tu alrededor, pero no ves nada particular.';
+  }
+  
+  if (msg.startsWith('/atacar')) {
+    const target = message.slice(7).trim();
+    return target ? `Te lanzas al ataque contra ${target} con toda tu furia!` : 'Pero... ¿atacar a qué?';
+  }
+  
+  if (msg.startsWith('/usar')) {
+    const item = message.slice(5).trim();
+    return item ? `Usas ${item}. Algo sucede...` : 'Necesitas especificar qué usar.';
+  }
+  
+  if (msg.startsWith('/hablar')) {
+    const target = message.slice(7).trim();
+    return target ? `Inicias una conversación con ${target}.` : 'No hay nadie aquí para hablar.';
+  }
+  
+  if (msg.startsWith('/buscar')) {
+    const thing = message.slice(7).trim();
+    return thing ? `Buscas ${thing} cuidadosamente. Quizás encuentres algo...` : 'Hurgues sin rumbo fijo en los alrededores.';
+  }
+  
+  if (msg.startsWith('/hacer')) {
+    const action = message.slice(6).trim();
+    return action ? `Intentas ${action}. La situación cambia sutilmente.` : 'Permaneces quieto, reflexionando.';
+  }
+  
+  return 'Comando no reconocido. Intenta: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar';
+}
+
 // Routes
 
 app.get('/api/bootstrap', async (req, res) => {
@@ -354,7 +396,8 @@ app.post('/api/message', async (req, res) => {
       } else if (cleanMessage.includes('estado')) {
         narration = `Estado actual:\nUbicación: ${state?.location || 'desconocida'}\nRegión: ${state?.region || 'sin definir'}\nDinero: ${state?.money || '0'}\nFatiga: ${state?.fatigue || 'normal'}`;
       } else {
-        narration = 'Comando no reconocido. Intenta: /inventario, /mapa, /estado';
+        // Comandos combinables: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar
+        narration = processCommandAction(cleanMessage, state);
       }
     } else {
       // Normal message - insert user message first
