@@ -262,11 +262,25 @@ app.get('/api/campaign/:campaignId', async (req, res) => {
       .eq('campaign_id', campaignId)
       .order('timestamp', { ascending: true });
 
+    // Get inventory items
+    const { data: inventory } = await supabase
+      .from('inventory')
+      .select('*')
+      .eq('campaign_id', campaignId);
+
+    // Get locations
+    const { data: locations } = await supabase
+      .from('locations')
+      .select('*')
+      .eq('campaign_id', campaignId);
+
     res.json({
       ok: true,
       campaign,
       state: state || {},
-      messages: messages || []
+      messages: messages || [],
+      inventory: (inventory || []).map(i => ({ name: i.item_name })),
+      locations: (locations || []).map(l => ({ name: l.location_name }))
     });
   } catch (err) {
     await logEvent(req.params.campaignId || '', 'ERROR', 'getCampaignData failed', err.message);
@@ -304,36 +318,69 @@ app.post('/api/message', async (req, res) => {
       });
     }
 
-    // Insert user message
-    await supabase.from('messages').insert({
-      campaign_id: id,
-      role: 'user',
-      content: cleanMessage,
-      summary_flag: false
-    });
-
-    // Get context for Gemini
+    // Get current state
     const { data: state } = await supabase
       .from('campaign_state')
       .select('*')
       .eq('campaign_id', id)
       .single();
 
-    const { data: recentMessages } = await supabase
-      .from('messages')
+    // Get inventory and locations
+    const { data: inventory } = await supabase
+      .from('inventory')
       .select('*')
-      .eq('campaign_id', id)
-      .order('timestamp', { ascending: false })
-      .limit(10);
+      .eq('campaign_id', id);
 
-    const { data: npcs } = await supabase
-      .from('npcs')
+    const { data: locations } = await supabase
+      .from('locations')
       .select('*')
-      .eq('campaign_id', id)
-      .limit(12);
+      .eq('campaign_id', id);
 
-    // Build prompt (simplified)
-    const prompt = `
+    // Check for special commands
+    const isSpecialCommand = cleanMessage.startsWith('/');
+    let narration = '';
+
+    if (isSpecialCommand) {
+      if (cleanMessage.includes('inventario')) {
+        narration = 'Tu mochila contiene: ' + 
+          (inventory && inventory.length > 0 
+            ? inventory.map(i => i.item_name).join(', ') 
+            : 'nada de valor');
+      } else if (cleanMessage.includes('mapa') || cleanMessage.includes('ubicaciones')) {
+        narration = 'Ubicaciones conocidas: ' + 
+          (locations && locations.length > 0 
+            ? locations.map(l => l.location_name).join(', ') 
+            : 'solo el lugar actual');
+      } else if (cleanMessage.includes('estado')) {
+        narration = `Estado actual:\nUbicación: ${state?.location || 'desconocida'}\nRegión: ${state?.region || 'sin definir'}\nDinero: ${state?.money || '0'}\nFatiga: ${state?.fatigue || 'normal'}`;
+      } else {
+        narration = 'Comando no reconocido. Intenta: /inventario, /mapa, /estado';
+      }
+    } else {
+      // Normal message - insert user message first
+      await supabase.from('messages').insert({
+        campaign_id: id,
+        role: 'user',
+        content: cleanMessage,
+        summary_flag: false
+      });
+
+      // Get context for Gemini
+      const { data: recentMessages } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('campaign_id', id)
+        .order('timestamp', { ascending: false })
+        .limit(10);
+
+      const { data: npcs } = await supabase
+        .from('npcs')
+        .select('*')
+        .eq('campaign_id', id)
+        .limit(12);
+
+      // Build prompt
+      const prompt = `
 Eres un narrador de un RPG oscuro y narrativo. El jugador está en: ${state?.location || 'ubicación desconocida'}, región ${state?.region || 'sin definir'}.
 
 Contexto reciente:
@@ -354,38 +401,39 @@ Responde en JSON con estructura:
 }
 `;
 
-    let structured;
-    try {
-      structured = await callGemini(prompt);
-    } catch (apiErr) {
-      await logEvent(id, 'ERROR', 'Gemini call failed', apiErr.message);
-      structured = {
-        narration: 'La bruma espiritual interfiere. Intenta reformular tu acción.'
-      };
-    }
+      let structured;
+      try {
+        structured = await callGemini(prompt);
+      } catch (apiErr) {
+        await logEvent(id, 'ERROR', 'Gemini call failed', apiErr.message);
+        structured = {
+          narration: 'La bruma espiritual interfiere. Intenta reformular tu acción.'
+        };
+      }
 
-    const narration = sanitizeText(structured.narration) || 'El momento queda suspendido.';
+      narration = sanitizeText(structured.narration) || 'El momento queda suspendido.';
 
-    // Insert assistant message
-    await supabase.from('messages').insert({
-      campaign_id: id,
-      role: 'assistant',
-      content: narration,
-      summary_flag: false
-    });
+      // Insert assistant message
+      await supabase.from('messages').insert({
+        campaign_id: id,
+        role: 'assistant',
+        content: narration,
+        summary_flag: false
+      });
 
-    // Apply state patch if exists
-    if (structured.state_patch && Object.keys(structured.state_patch).length > 0) {
-      const patch = structured.state_patch;
-      const updates = {};
-      if (patch.location) updates.location = sanitizeText(patch.location);
-      if (patch.region) updates.region = sanitizeText(patch.region);
-      if (Object.keys(updates).length > 0) {
-        updates.updated_at = new Date().toISOString();
-        await supabase
-          .from('campaign_state')
-          .update(updates)
-          .eq('campaign_id', id);
+      // Apply state patch if exists
+      if (structured.state_patch && Object.keys(structured.state_patch).length > 0) {
+        const patch = structured.state_patch;
+        const updates = {};
+        if (patch.location) updates.location = sanitizeText(patch.location);
+        if (patch.region) updates.region = sanitizeText(patch.region);
+        if (Object.keys(updates).length > 0) {
+          updates.updated_at = new Date().toISOString();
+          await supabase
+            .from('campaign_state')
+            .update(updates)
+            .eq('campaign_id', id);
+        }
       }
     }
 
@@ -395,10 +443,20 @@ Responde en JSON con estructura:
       .update({ updated_at: new Date().toISOString() })
       .eq('campaign_id', id);
 
+    // Get updated state
+    const { data: updatedState } = await supabase
+      .from('campaign_state')
+      .select('*')
+      .eq('campaign_id', id)
+      .single();
+
     res.json({
       ok: true,
       campaign_id: id,
-      narration
+      narration,
+      state: updatedState || {},
+      inventory: (inventory || []).map(i => ({ name: i.item_name })),
+      locations: (locations || []).map(l => ({ name: l.location_name }))
     });
   } catch (err) {
     await logEvent(req.body.campaignId || '', 'ERROR', 'handlePlayerMessage failed', err.message);
