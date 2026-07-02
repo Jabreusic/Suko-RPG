@@ -58,6 +58,175 @@ function generateCampaignId() {
   return 'cmp_' + crypto.randomBytes(10).toString('hex').slice(0, 20);
 }
 
+// ============ CHARACTER STAT SYSTEM (D&D-like) ============
+
+// Initialize character stats
+function initializeCharacterStats() {
+  return {
+    level: 1,
+    experience: 0,
+    stats: {
+      strength: Math.floor(Math.random() * 8) + 10,      // 10-17
+      dexterity: Math.floor(Math.random() * 8) + 10,
+      intelligence: Math.floor(Math.random() * 8) + 10,
+      wisdom: Math.floor(Math.random() * 8) + 10,
+      constitution: Math.floor(Math.random() * 8) + 10,
+      charisma: Math.floor(Math.random() * 8) + 10
+    },
+    skills: {
+      // Combat skills
+      melee: { proficiency: 0, stat: 'strength' },
+      ranged: { proficiency: 0, stat: 'dexterity' },
+      
+      // Social skills
+      persuasion: { proficiency: 0, stat: 'charisma' },
+      deception: { proficiency: 0, stat: 'charisma' },
+      intimidation: { proficiency: 0, stat: 'charisma' },
+      
+      // Knowledge skills
+      investigation: { proficiency: 0, stat: 'intelligence' },
+      arcana: { proficiency: 0, stat: 'intelligence' },
+      nature: { proficiency: 0, stat: 'wisdom' },
+      
+      // Stealth/Acrobatics
+      stealth: { proficiency: 0, stat: 'dexterity' },
+      acrobatics: { proficiency: 0, stat: 'dexterity' }
+    },
+    health: 20,
+    maxHealth: 20
+  };
+}
+
+// Roll a d20 (20-sided die)
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+// Get modifier from stat value
+function getModifier(statValue) {
+  return Math.floor((statValue - 10) / 2);
+}
+
+// Calculate skill check with stat + proficiency
+function calculateSkillCheck(stats, skillName) {
+  const skill = stats.skills[skillName];
+  if (!skill) return 0;
+  
+  const statValue = stats.stats[skill.stat];
+  const modifier = getModifier(statValue);
+  const proficiencyBonus = Math.floor(stats.level / 4) + 2;
+  
+  return modifier + (skill.proficiency > 0 ? proficiencyBonus : 0);
+}
+
+// Determine if an action needs a dice roll (contextually)
+function shouldRollDice(action, context) {
+  const actionLower = action.toLowerCase();
+  
+  // Always roll for these actions
+  const combatKeywords = ['atacar', 'combate', 'pelear', 'golpear', 'disparar'];
+  const socialKeywords = ['persuadir', 'engañar', 'intimidar', 'seducir', 'convencer', 'mentir', 'negociar'];
+  const stealthKeywords = ['esconder', 'escabullir', 'sigiloso', 'sigilo', 'esconderse', 'trepar', 'saltar'];
+  const investigateKeywords = ['investigar', 'examinar', 'buscar', 'encontrar', 'descubrir', 'detectar'];
+  
+  const allKeywords = [...combatKeywords, ...socialKeywords, ...stealthKeywords, ...investigateKeywords];
+  
+  // Check if action contains any keyword requiring a roll
+  for (const keyword of allKeywords) {
+    if (actionLower.includes(keyword)) {
+      return true;
+    }
+  }
+  
+  // Contextual: if narrative has conflict/difficulty, roll
+  if (context && context.includes('difícil') || context.includes('peligro') || context.includes('resistencia')) {
+    return Math.random() < 0.4; // 40% chance
+  }
+  
+  return false;
+}
+
+// Determine which skill to use
+function getRelevantSkill(action) {
+  const actionLower = action.toLowerCase();
+  
+  if (actionLower.includes('combate') || actionLower.includes('atacar') || actionLower.includes('golpear')) {
+    return 'melee';
+  }
+  if (actionLower.includes('dispara') || actionLower.includes('ranged')) {
+    return 'ranged';
+  }
+  if (actionLower.includes('persuad') || actionLower.includes('convenc')) {
+    return 'persuasion';
+  }
+  if (actionLower.includes('engaña') || actionLower.includes('miente')) {
+    return 'deception';
+  }
+  if (actionLower.includes('intim')) {
+    return 'intimidation';
+  }
+  if (actionLower.includes('investi') || actionLower.includes('exami') || actionLower.includes('busca')) {
+    return 'investigation';
+  }
+  if (actionLower.includes('magia') || actionLower.includes('hechizo') || actionLower.includes('arcana')) {
+    return 'arcana';
+  }
+  if (actionLower.includes('esconde') || actionLower.includes('sigilo')) {
+    return 'stealth';
+  }
+  if (actionLower.includes('trepa') || actionLower.includes('salta') || actionLower.includes('acrobacia')) {
+    return 'acrobatics';
+  }
+  
+  return 'investigation'; // default
+}
+
+// Generar opening único por campaña (llamar a Gemini)
+async function generateUniqueOpening(characterName, playerName) {
+  const prompt = `ERES UN NARRADOR ÉPICO CREANDO UNA ESCENA DE APERTURA ÚNICA.
+
+PERSONAJE: ${characterName}
+JUGADOR: ${playerName}
+
+CONTEXTO MUNDO: Avatar Post-Guerra. Año 19 del Concilio. La Metrópolis de Convergencia hierve de tensión política.
+
+GENERA UNA ESCENA DE APERTURA ÚNICA QUE:
+1. Sitúe al jugador en una SITUACIÓN INMEDIATA diferente cada vez
+2. Incluya UN PELIGRO O DILEMA ESPECÍFICO (no genérico)
+3. Presente UN NPC o elemento sorpresa relevante
+4. Tenga 2-3 párrafos vividos
+5. Termine con UNA PREGUNTA DIRECTA al jugador
+
+TONO: Oscuro, visceral, memorable. Crea urgencia.
+
+IMPORTANTE: Esta debe ser una apertura COMPLETAMENTE NUEVA, no la escena del mercader sangrando. 
+Pueden ser: Un encuentro en el puerto, una emboscada, un secreto revelado, un sueño profético, un encuentro casual que gira oscuro, etc.
+
+Genera la escena de apertura única ahora:`;
+
+  try {
+    const result = await callGemini(prompt);
+    return result?.narration || getDefaultOpening(characterName);
+  } catch (err) {
+    console.warn('[UNIQUE OPENING ERROR]', err.message);
+    return getDefaultOpening(characterName);
+  }
+}
+
+function getDefaultOpening(characterName) {
+  const openings = [
+    `Despiertas en un callejón mojado. El agua fría te corre por la cara. Alguien acaba de desvanecer tu bolsa. Voces cerca: "El forastero. Sí, ese." Tu corazón acelerado. Necesitas moverse. Ahora.`,
+    `La voz de una mujer te despierta en la obscuridad. "Llegas tarde," murmura. Estás en un sótano subterráneo. Velas titiritando. Ella se acerca: "El Tribunal Ember te busca. ¿Quién eres realmente?"`,
+    `El humo de un fuego reciente rodea la plaza. Una construcción ardiendo. Gritos. En la multitud, una figura encapuchada te mira directamente. Te reconoce. Corre. Y tú necesitas decidir: ¿seguir o huir?`,
+    `Una carta cae a tus pies. Papel antiguo. Tu nombre escrito en letra temblorosa. Adentro: "Si lees esto, ya sabes demasiado. Busca a Sifu Wren en los muelles. Confía solo en él. Queman nuestra orden."`,
+    `Te despiertas gritando. La pesadilla se disuelve pero la sensación permanece: alguien murió. Por tu culpa. Abres los ojos. La Metrópolis rugiendo afuera. Eres ${characterName}. Estás vivo. Por ahora.`
+  ];
+  
+  return openings[Math.floor(Math.random() * openings.length)];
+}
+
+
+
 // Extract quick commands from narration (dynamically generated by Gemini)
 function extractQuickCommands(narration) {
   const commands = [];
@@ -512,24 +681,27 @@ app.post('/api/campaign', async (req, res) => {
       status: 'active'
     });
 
-    // Insert character
+    // Initialize character stats - NEW!
+    const characterStats = initializeCharacterStats();
+
+    // Insert character with stats
     await supabase.from('characters').insert({
       campaign_id: campaignId,
       character_name: cName,
       origin: '',
-      ability: '',
+      ability: JSON.stringify(characterStats),
       personality_notes: '',
       visual_profile: '',
       created_at: now
     });
 
-    // Insert campaign_state
+    // Insert campaign_state with stats
     await supabase.from('campaign_state').insert({
       campaign_id: campaignId,
       location: 'Metrópolis de Convergencia - Distrito Mercantil',
       region: 'Tierras Neutrales',
       season: 'Otoño tardío',
-      ability: '',
+      ability: JSON.stringify(characterStats),
       ability_limits: '',
       fatigue: 'leve',
       current_pressure: 'Rumores de movimiento factional en las sombras',
@@ -584,26 +756,23 @@ app.post('/api/campaign', async (req, res) => {
       }
     ]);
 
-    // Insert opening scene message - MUCHO MAS INMERSIVA
-    const openingScene = `
-Abres los ojos. La metrópolis de Convergencia rodea: una masa de madera, piedra y fuego mágico que ilumina tiendas de tela andrajosa. Hueles: especias quemadas, agua estancada, sangre seca.
+    // Generate UNIQUE opening scene for this campaign - NEW!
+    let openingScene = getDefaultOpening(cName); // Fallback
+    try {
+      openingScene = await generateUniqueOpening(cName, pName);
+    } catch (err) {
+      console.warn('[OPENING GENERATION]', err.message);
+    }
 
-SITUACIÓN INMEDIATA:
-Te encuentras en el Mercado Mercantil, borde de la plaza principal. Es atardecer. Una riña acaba de terminar: dos guardias de la Reconciliación arrastran un mercader sangrando hacia un callejón. Nadie interviene. Nadie mira.
-
-TU BOLSA: 15 monedas (herencia de viaje). Ropa de viajero. Nada de valor.
-
-OPCIONES INMEDIATAS:
-1. Intervenir (riesgo: enfrentar guardias)
-2. Seguir (aprender más sobre quién era el mercader)
-3. Huir (buscar refugio seguro antes del anochecer)
-
-¿Qué haces en este momento oscuro, ${cName}?`;
+    // Add character stats info to opening
+    const statsPreview = `\n\n[TUS HABILIDADES INICIALES]
+Fuerza: ${characterStats.stats.strength} | Destreza: ${characterStats.stats.dexterity} | Inteligencia: ${characterStats.stats.intelligence}
+Sabiduría: ${characterStats.stats.wisdom} | Constitución: ${characterStats.stats.constitution} | Carisma: ${characterStats.stats.charisma}`;
 
     await supabase.from('messages').insert({
       campaign_id: campaignId,
       role: 'assistant',
-      content: openingScene.trim(),
+      content: (openingScene + statsPreview).trim(),
       summary_flag: false
     });
 
