@@ -467,24 +467,45 @@ app.post('/api/message', async (req, res) => {
         .eq('campaign_id', id)
         .limit(12);
 
-      // Build prompt
+      // Build improved prompt
       const prompt = `
-Eres un narrador de un RPG oscuro y narrativo. El jugador está en: ${state?.location || 'ubicación desconocida'}, región ${state?.region || 'sin definir'}.
+ERES SUKO - NARRADOR DE RPG NARRATIVO OSCURO
 
-Contexto reciente:
-${(recentMessages || []).slice(0, 5).reverse().map(m => `${m.role}: ${m.content}`).join('\n')}
+CONTEXTO DEL MUNDO (Año 19 del Concord):
+- Era post-guerra, paz frágil entre Cuatro Naciones
+- Tensión política: reformismo vs militarismo
+- Facciones activas: Ember Court Remnant, Lantern Road Syndicate, Lotus Vigil, Grove-Keepers, Reconciliation Council, Free Captains
+- Amenaza: bandoleros, espíritus inquietos, tráfico de armas, bandas rivales
 
-NPCs/personajes conocidos:
-${(npcs || []).slice(0, 3).map(n => `- ${n.npc_name}: ${n.role}`).join('\n')}
+UBICACIÓN ACTUAL: ${state?.location || 'desconocida'}, región ${state?.region || 'sin definir'}
+ESTADO DEL JUGADOR: Fatiga: ${state?.fatigue || 'normal'}, Dinero: ${state?.money || '0'}, Presión actual: ${state?.current_pressure || 'ninguna'}
 
-Acción del jugador: ${cleanMessage}
+NPCs RECURRENTES ACTIVOS:
+${(npcs || []).slice(0, 5).map(n => `- ${n.npc_name} (${n.role}): ${n.personality || 'personalidad desconocida'}`).join('\n')}
 
-Responde en JSON con estructura:
+CONTEXTO RECIENTE:
+${(recentMessages || []).slice(0, 8).reverse().map(m => `${m.role === 'user' ? 'Jugador' : 'Escena'}: ${m.content}`).join('\n')}
+
+ACCIÓN DEL JUGADOR: ${cleanMessage}
+
+INSTRUCCIONES CRÍTICAS:
+1. Narra CONSECUENCIAS, no sistemas. Cada respuesta mueve: escena, relación, recurso, rumor, herida
+2. El mundo existe sin el jugador. Los NPCs tienen objetivos propios, pueden perder contra terceros
+3. Presión narrativa es DRAMA, no frustración: recursos bajos, opciones difíciles, tiempo escaso, relaciones tensas
+4. Menciona si hay presión narrativa actual, cómo evoluciona, qué facciones avanzan en trasfondo
+5. Cultura y texturas: comida regional, ropa característica, arte y entretenimiento
+6. Las consecuencias son DURADERAS: pueblos recuerdan ayuda, rivales cargan derrotas, favores se cobran, traiciones resuenan
+7. Tono: oscuro pero no desesperado. Esperanza condicional. Ritmo respira entre intenso y descanso
+
+RESPUESTA EN JSON ESTRICTO:
 {
-  "narration": "descripción de qué sucede",
+  "narration": "narración de 2-4 párrafos máximo",
   "state_patch": {
-    "location": "nuevo lugar si cambió",
-    "region": "nueva región si cambió"
+    "location": "nuevo lugar si cambió (o null)",
+    "region": "nueva región si cambió (o null)",
+    "fatigue": "nuevo nivel si cambió (or null)",
+    "money": "dinero nuevo si cambió (or null)",
+    "current_pressure": "presión narrativa si hay (or null)"
   }
 }
 `;
@@ -569,6 +590,150 @@ app.post('/api/log', async (req, res) => {
     res.status(500).json({ ok: false });
   }
 });
+
+// ============ NEW ENDPOINTS: PRESIÓN NARRATIVA Y FACCIONES ============
+
+app.get('/api/pressure/:campaignId', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    
+    const { data: pressures } = await supabase
+      .from('narrative_pressure')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .is('resolved_at', null);
+    
+    const { data: factions } = await supabase
+      .from('faction_activity')
+      .select('*')
+      .eq('campaign_id', campaignId);
+    
+    const { data: npcGoals } = await supabase
+      .from('npc_goals')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .eq('current_status', 'pursuing');
+
+    res.json({
+      ok: true,
+      pressures: pressures || [],
+      factions: factions || [],
+      npcGoals: npcGoals || []
+    });
+  } catch (err) {
+    await logEvent(req.params.campaignId || '', 'ERROR', 'getPressure', err.message);
+    res.status(500).json({ ok: false, error: 'No pude cargar presión narrativa.' });
+  }
+});
+
+app.post('/api/pressure/:campaignId', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    const { pressure_type, description, severity } = req.body;
+
+    if (!pressure_type || !description) {
+      return res.status(400).json({ ok: false, error: 'pressure_type y description requeridos.' });
+    }
+
+    const { data } = await supabase
+      .from('narrative_pressure')
+      .insert({
+        campaign_id: campaignId,
+        pressure_type: sanitizeText(pressure_type),
+        description: sanitizeText(description),
+        severity: Math.min(10, Math.max(1, parseInt(severity) || 5))
+      })
+      .select()
+      .single();
+
+    res.json({ ok: true, pressure: data });
+  } catch (err) {
+    await logEvent(req.params.campaignId || '', 'ERROR', 'addPressure', err.message);
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.get('/api/factions/:campaignId', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    
+    const { data: factions } = await supabase
+      .from('faction_activity')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .order('progress_pct', { ascending: false });
+
+    res.json({ ok: true, factions: factions || [] });
+  } catch (err) {
+    await logEvent(req.params.campaignId || '', 'ERROR', 'getFactions', err.message);
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/factions/:campaignId', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    const { factionId, progress_pct, next_step } = req.body;
+
+    if (!factionId) return res.status(400).json({ ok: false });
+
+    const updates = { last_updated: new Date().toISOString() };
+    if (progress_pct !== undefined) updates.progress_pct = Math.min(100, Math.max(0, progress_pct));
+    if (next_step) updates.next_step = sanitizeText(next_step);
+
+    const { data } = await supabase
+      .from('faction_activity')
+      .update(updates)
+      .eq('id', factionId)
+      .eq('campaign_id', campaignId)
+      .select()
+      .single();
+
+    res.json({ ok: true, faction: data });
+  } catch (err) {
+    await logEvent(req.params.campaignId || '', 'ERROR', 'updateFaction', err.message);
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.get('/api/events/:campaignId', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    
+    const { data: events } = await supabase
+      .from('off_screen_events')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .eq('revealed', false)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    res.json({ ok: true, events: events || [] });
+  } catch (err) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/events/:campaignId/:eventId/reveal', async (req, res) => {
+  try {
+    const campaignId = sanitizeId(req.params.campaignId);
+    const eventId = parseInt(req.params.eventId);
+
+    const { data } = await supabase
+      .from('off_screen_events')
+      .update({ revealed: true })
+      .eq('id', eventId)
+      .eq('campaign_id', campaignId)
+      .select()
+      .single();
+
+    res.json({ ok: true, event: data });
+  } catch (err) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+// ============ END NEW ENDPOINTS ============
 
 // Servir index.html para SPA routing
 app.get('/', (req, res) => {
