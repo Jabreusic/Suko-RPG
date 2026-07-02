@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><?= appName ?></title>
+    <?!= include('style'); ?>
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <main class="app-shell">
+      <header class="app-header">
+        <h1>SUKO RPG</h1>
+        <p>Narrativa viva. Consecuencias persistentes. Tu historia se guarda sola.</p>
+      </header>
+
+      <section class="campaign-panel card">
+        <div class="campaign-row">
+          <label for="campaignSelect">Campaña</label>
+          <select id="campaignSelect"></select>
+          <button id="loadCampaignBtn" class="btn secondary">Cargar</button>
+        </div>
+
+        <div class="campaign-create">
+          <input id="playerName" type="text" placeholder="Nombre del jugador" maxlength="60" />
+          <input id="characterName" type="text" placeholder="Nombre del personaje" maxlength="60" />
+          <button id="createCampaignBtn" class="btn">Nueva partida</button>
+        </div>
+      </section>
+
+      <section class="chat card">
+        <div id="chatBox" class="chat-box" aria-live="polite"></div>
+
+        <div id="errorBox" class="error-box hidden"></div>
+
+        <div class="quick-actions">
+          <button class="chip" data-command="/estado">Estado</button>
+          <button class="chip" data-command="/inventario">Inventario</button>
+          <button class="chip" data-command="/mapa">Mapa</button>
+          <button class="chip" data-command="/rumores">Rumores</button>
+          <button class="chip" data-command="/relaciones">Relaciones</button>
+          <button class="chip" data-command="/resumen">Resumen</button>
+          <button class="chip" data-command="/imagen">Imagen</button>
+        </div>
+
+        <div class="input-row">
+          <input id="userInput" type="text" placeholder="¿Qué haces?" maxlength="1200" />
+          <button id="sendBtn" class="btn">Enviar</button>
+        </div>
+      </section>
+    </main>
+
+    <?!= include('client'); ?>
+  </body>
+</html>
