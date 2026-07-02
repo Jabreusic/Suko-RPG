@@ -146,11 +146,30 @@ function switchTab(tabName) {
 /* ========== CHAT & INPUT ========== */
 
 function bindCommands() {
-  document.querySelectorAll('.cmd-quick').forEach(btn => {
+  // Commands are bound dynamically via updateQuickCommands()
+  // This function stays for compatibility
+  updateQuickCommands([
+    '🔍 Investigar',
+    '💬 Hablar',
+    '⚔️ Preparar',
+    '👀 Examinar'
+  ]);
+}
+
+function updateQuickCommands(commands) {
+  const container = document.querySelector('.quick-commands');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  (commands || []).slice(0, 4).forEach((cmd, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-quick';
+    btn.textContent = cmd;
     btn.addEventListener('click', () => {
-      document.getElementById('userInput').value = btn.dataset.cmd;
+      document.getElementById('userInput').value = cmd;
       onSend();
     });
+    container.appendChild(btn);
   });
 }
 
@@ -202,6 +221,11 @@ async function onSend() {
       if (data.locations) state.locations = data.locations;
       if (data.pressures) state.pressures = data.pressures;
       if (data.factions) state.factions = data.factions;
+      
+      // Update dynamic quick commands based on server response
+      if (data.quickCommands && data.quickCommands.length > 0) {
+        updateQuickCommands(data.quickCommands);
+      }
       
       // Update panels
       updatePresionTab();
