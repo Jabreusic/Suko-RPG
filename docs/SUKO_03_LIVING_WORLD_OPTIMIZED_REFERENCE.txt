@@ -1,0 +1,38 @@
+SUKO — 08 CONVERSATION MECHANICS OPTIMIZED REFERENCE
+=====================================================
+Conversation is free-form only. No dialogue trees, no options.
+
+READ THE USER'S APPROACH
+------------------------
+Before replying as NPC, assess:
+- tone: warm, blunt, cold, aggressive, flirtatious, manipulative, honest, evasive, joking;
+- intent: genuine question, test, fishing, manipulation, offer, threat, small talk;
+- truthfulness: would this NPC know the statement is false?
+- register: does the speech fit local custom/class/formality?
+
+NPC RESPONSE FILTER
+-------------------
+Respond through:
+1. NPC want: does user help, hurt, or distract from it?
+2. NPC fear: did user trigger vulnerability?
+3. NPC voice: speech rhythm, habit, idiom, formality.
+4. Current trust: benefit of doubt or suspicion.
+5. Hard line: if crossed, real rupture.
+
+LYING AND WITHHOLDING
+---------------------
+NPCs may lie, deflect, omit, test, or hide information to protect wants or avoid fears. Low trust withholds more. High trust shares more, but privacy remains.
+
+Give fair signs of deception: pause, too-fast answer, changed tone, body language, contradiction, answering adjacent question.
+
+SUBTEXT
+-------
+Do not have characters explain themselves too much. Use action, silence, timing, avoidance, physical detail, and contradiction.
+
+CONVERSATIONAL STAKES
+---------------------
+Most substantial conversations should move something: trust, information, NPC goal, emotional tenor, preparation, rumor, or conflict. Quiet warmth is valid if it deepens relationship or recovery.
+
+ESCALATE/DE-ESCALATE
+--------------------
+Let user wording steer scene temperature. Pushing harder can escalate. Honest vulnerability can soften. Jokes can work or fail depending on NPC and moment.

@@ -1,0 +1,510 @@
+SUKO OPTIMIZED KNOWLEDGE MERGED
+===============================
+Use this only if your Gem handles fewer files better. Prefer individual files when possible.
+
+
+
+================================================================================
+SUKO_02_WORLD_CANON_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 02 WORLD CANON OPTIMIZED REFERENCE
+=========================================
+Use this only when relevant. Do not dump it.
+
+ERA
+---
+The story begins in Year 19 of the Concord, nineteen years after a long war ended through the Concord of the Four Nations. Peace exists, but it is young, uneven, and held together by exhaustion, diplomacy, trade, reform, and fear of repeating the past.
+
+CALENDAR
+--------
+Seasons: Thaw, Growing, Harvest Wind, Deep Cold. Full moon strengthens waterbending and spirit activity. New moon weakens waterbending and is considered unlucky near coasts. Ember Comet is rare and firebending-relevant; Silver Comet is more common and spirit-associated.
+
+MAJOR REGIONS
+-------------
+Fire Nation Homeland: volcanic islands, disciplined cities, forges, reform court, old militarists.
+Former Colonies: Earth Kingdom coast with Fire Nation settlement legacy, hybrid identity, land disputes, black-market weapons.
+Central Earth Kingdom: huge, fragmented, governors, walled cities, bandits, local courts, famine pockets.
+Northern Water Tribe: fortified ice city, proud, traditional, succession friction, sacred pools.
+Southern Water Tribe: scattered, rebuilding through trade, more outward-facing, reform debates.
+Air Nomad Sanctuaries: temples and new acolytes rebuilding culture, debate over outsiders.
+Spirit Wilds: thin veil regions, haunted groves, sacred pools, portals, strange time and spirit bargains.
+Outer Archipelago: independent trade islands, pirate havens, smugglers, captain contracts.
+Ash-Scarred Front: old battlefield, trenches, traps, unstable earth, scavengers, haunted reputation.
+Sunken Capital Ruins: drowned ancient capital, unstable ruins, old wards, buried records.
+
+POLITICS
+--------
+Fire Nation: young reformist Fire Lord versus old war-era nobles/generals.
+Former Colonies: patchwork local councils; identity tension over who belongs.
+Central Earth Kingdom: monarchy in name, governors in practice.
+Water Tribes: North traditional, South rebuilding and reforming.
+Air Nomads: decentralized senior acolytes and elders.
+
+LAW
+---
+Common offenses: theft, unlicensed duels, smuggling, unpaid tribute, forged papers, reckless bending damage, spirit trespass, poaching in sanctuaries, black-market weapons.
+Consequences are usually fines, confiscation, labor, travel restrictions, license loss, public censure, holding cells, exile. Execution and mutilation are rare, controversial, and signs of corruption or war-era brutality.
+
+Travel papers matter in cities and borders. Lack of papers causes friction, suspicion, delay, fines, or detention, not automatic villain treatment.
+
+Bending is legal; dangerous techniques like bloodbending, unconsented energybending, large memory/spirit manipulation, or reckless mass damage are serious crimes.
+
+FACTIONS
+--------
+Ember Court Remnant: Fire Nation hardliners, old wealth, veterans, sabotage.
+Reconciliation Council: Four Nations diplomacy, legitimate but slow and underfunded.
+Lantern Road Syndicate: smuggling, contraband, routes, information trade, easy credit with sharp terms.
+Stone Compact: Earth Kingdom governors resisting central authority.
+Tide Wardens: Water Tribe naval/coast guard order, effective but slowed by North-South tension.
+Open Sky Circle: Air Nomad rebuilding network, warm and mobile, sometimes naive.
+Lotus Vigil: quiet cross-nation order watching spirit incidents and unusual bending; curious more than punitive.
+Free Captains: Outer Archipelago traders/privateers loyal to profit and contracts.
+Grove-Keepers: spirit-site caretakers, naturalists, priests, healers; help requires honesty or promise.
+Unbound: spirits, animals, and rare people permanently changed by Spirit World contact; misunderstood more than evil.
+
+ECONOMY
+-------
+Currency: copper pieces, silver notes, gold yuan, local scrip, favor-debts, formal contracts. Common people rarely handle gold. Scarcity varies by region: fresh produce, imported goods, healing, travel papers, reliable information, safe passage.
+
+Use economy as pressure, not bookkeeping. Costs should create choices: food or ferry, healer or bribe, repair or lodging, official papers or risky shortcut.
+
+
+================================================================================
+SUKO_03_LIVING_WORLD_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 03 LIVING WORLD OPTIMIZED REFERENCE
+==========================================
+The user is one thread in a larger tapestry. Other people have schedules, plots, victories, losses, errands, debts, romances, rivalries, fears, and private goals.
+
+NON-PROTAGONIST PRINCIPLE
+-------------------------
+No NPC treats the user as chosen by default. If the user matters, it is because of a specific deed, relationship, skill, rumor, debt, or consequence.
+
+Important events may resolve without the user. A rival can win a duel. A bounty can be claimed by someone else. A town problem can be handled by locals. The user's deeds still matter where they actually land.
+
+RECURRING NPC SEEDS
+-------------------
+Use only when natural.
+
+Sifu Wren Kobo: retired Earth Kingdom soldier turned traveling teacher. Gruff, dry humor, searching for runaway apprentice Dael who stole technique scrolls.
+Elder Panya: aging Air Nomad acolyte, warm and scattered, cares about sanctuary garden and opening sanctuaries to outsiders.
+Toma Ashgrave: talented Fire Nation noble youth, competitive, image-conscious, secretly entering unlicensed dueling circuit.
+Ren "Two-Step" Calloway: non-bending chi-blocker courier, witty, broke, paying debt to Lantern Road Syndicate.
+Hollis Barrow: way-station innkeeper, practical, knows gossip, worried about harvest.
+Sana Teal: young Water Tribe healer in Former Colony clinic, homesick but competent.
+Constable Iyo Marsh: fair but overworked lawkeeper in a tense Former Colony town.
+Vigil Agent Sela Doon: Lotus Vigil field agent investigating spirit unrest, curious and restrained.
+
+PARALLEL STORYLINES
+-------------------
+Run some in background, not all at once.
+
+Dueling Circuit Season: Toma and others climb an illegal ladder; match-fixing scandal possible.
+Northern Succession Question: two candidates gather support around aging chief.
+Runaway Apprentice: Dael uses stolen scrolls to build mercenary reputation.
+Sanctuary Opening Debate: Panya pushes for outsiders; vote may pass, fail, or split community.
+Vigil Investigation: Sela Doon follows spirit unrest, sometimes ahead of user.
+
+OFF-SCREEN LIFE
+---------------
+During travel, recovery, or time skips, generate 1-2 developments: faction progress, ordinary life, consequence of user action, NPC advancement, rumor, storm, harvest, marriage, shop changing hands, court ruling.
+
+INCIDENTAL SCENE SEEDS
+----------------------
+Merchants arguing over bad trade; young bender practicing poorly at dawn; guards gossiping off-duty; performer preparing proposal or protest; grieving family with local custom; late courier muttering; children playing regional game; sick animal causing livelihood problem.
+
+Use glimpses. Not every NPC needs depth.
+
+
+================================================================================
+SUKO_04_CULTURE_DAILY_LIFE_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 04 CULTURE AND DAILY LIFE OPTIMIZED REFERENCE
+=====================================================
+Use culture as scene texture, not exposition.
+
+FOOD
+----
+Fire Nation: rice, fire flakes, spiced skewers, hot noodles, seafood, serious tea etiquette.
+Former Colonies: fusion cuisine, Earth grains and Fire spices; authenticity debates.
+Earth Kingdom: regional grains, vegetables, dumplings, street food, rural home noodles.
+Water Tribes: fish, sea plants, smoked/salted/fermented foods, richer North, simpler mobile South.
+Air Sanctuaries: vegetarian grains, fruit, dairy, simple but good, outsider influence.
+Outer Archipelago: seafood-heavy improvisation from many ports.
+
+Refusing tea or food can be socially meaningful depending on region.
+
+CLOTHING
+--------
+Fire Nation: structured layers, reds/oranges formal, muted daily, old military elements politically loaded.
+Former Colonies: Fire cuts with Earth colors; identity signal.
+Earth Kingdom: practical, earth-toned, regional, embroidery/dye show wealth.
+Water Tribes: furs/hides North, lighter rebuilt South, boot/parka craft pride.
+Air Nomads: loose robes, warm tones, movement; arrow tattoos rare and meaningful.
+
+ART AND ENTERTAINMENT
+---------------------
+Fire: formal theater, masks, disciplined painting, martial dance.
+Earth: puppet/shadow theater, oral epics, pottery, stonework.
+Water: carving, oral history through song, winter storytelling.
+Air: gliders, kites, wind music, movement as art.
+Cross-nation: traveling variety shows, bending demos, circus-concert hybrids.
+Games: pai-sho-like strategy games, illegal duel betting, children's bending-mimic games.
+
+EDUCATION AND TRADES
+--------------------
+Bending instruction: family, academies, apprenticeships, informal mentors. Unequal access creates class friction.
+Non-bending: guild apprenticeships, village tutoring, self-teaching.
+Coming of age varies: Water solo hunt/fishing, Fire tea ceremony, Earth harvest rite, Air solo glider flight.
+
+FAMILY AND COMMUNITY
+--------------------
+Fire: formal households, reform tension, old arranged-introduction customs.
+Earth: highly regional; clans, matrilineal/patrilineal, compounds.
+Water: extended family and elder councils.
+Air: sanctuary community, renegotiating family life as outsiders join.
+
+LANGUAGE AND IDIOM
+------------------
+Give regions subtle differences in formality, metaphors, sayings, and cadence. Do not overdo accents. Let speech reveal home, class, trade, age, and stress.
+
+ANIMALS IN DAILY LIFE
+---------------------
+Sky bison: rare, bonded, not casual vehicles.
+Messenger hawks: valuable trained communication.
+Ostrich-horses: common Earth riding/draft animals, stubborn.
+Komodo-rhinos: heavy draft/former cavalry.
+Otter-penguins: Water coastal, fish-herding, playful.
+Pack-seals: Water Tribe travel.
+Goat-deer: milk, wool, meat in highlands.
+
+Animal care can be a real livelihood scene.
+
+
+================================================================================
+SUKO_05_WORLD_SIMULATION_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 05 WORLD SIMULATION OPTIMIZED REFERENCE
+================================================
+Keep the world moving on its own terms.
+
+FACTION GOALS
+-------------
+For each active faction/antagonist, track internally:
+- current goal;
+- next concrete step;
+- time needed;
+- what accelerates or delays it;
+- what the user has affected.
+
+Advance plans when story-time passes, whether or not the user sees it. Reveal results through rumors, posters, letters, price changes, patrol behavior, closed shops, celebrations, arrests, or changed NPC attitudes.
+
+OFF-SCREEN EVENTS
+-----------------
+When time passes, generate 1-2 plausible developments from:
+- parallel storyline progress;
+- faction goal progress;
+- ordinary life continuing;
+- consequences of user action landing later.
+
+Not every development becomes a quest hook. Some are just signs of a living world.
+
+OTHER PEOPLE'S HEROICS
+----------------------
+Show capable people solving problems without the user: a bounty claimed, crisis resolved, rival promoted, healer saves a town, constable handles a case. Use sparingly. This enriches the world; it should not make the user irrelevant.
+
+CALIBRATING USER IMPORTANCE
+---------------------------
+Locally, the user can matter hugely. Regionally, they are one capable person among many. Historically, they are a participant, not the culmination.
+
+Never say "only you can" unless a specific established skill, relationship, knowledge, or spirit condition makes it true.
+
+EARNED IMPACT
+-------------
+A helped town remembers. A rival carries a loss. A favor can be collected. A betrayal resurfaces. A rumor spreads with distortion. The world remembers specifically and proportionately.
+
+
+================================================================================
+SUKO_06_LEGENDS_FAUNA_ARTS_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 06 LEGENDS, FAUNA, AND ELEMENTAL ARTS OPTIMIZED REFERENCE
+==================================================================
+Use myth as rumor, story, ritual, fear, joke, or local belief. Do not lecture.
+
+FOUNDATIONAL MYTHS
+------------------
+Lion Turtles' Gift: oldest shared myth; lion turtles taught first people bending from their lands. Literal history or metaphor is debated.
+Sundering: separation of physical and spirit worlds. Fire sees discipline, Water sees grief/protection, Earth varies by province, Air sees letting go.
+
+Per-nation first-bender legends:
+Fire: wild flame surviving storm, reform-era alternative to militarized dragon myth.
+Water: light/dark koi spirits teaching push-pull rhythm.
+Earth: blind burrowing creatures teaching stone movement.
+Air: moving without leaving a mark; combat came later.
+
+FOLK TALES
+----------
+Lantern Widow: Former Colonies dock ghost guiding or luring sailors depending on town.
+Stoneback Wanderer: Earth folk hero correcting corrupt officials quietly.
+Last Breath Choir: Water drowned spirits warning reckless hunters.
+Unfinished Student: Air caution against abandoning discipline for glory.
+
+FAUNA
+-----
+Everyday: sky bison, messenger hawks, ostrich-horses, komodo-rhinos, otter-penguins, pack-seals, goat-deer.
+Dangerous: saber-tooth moose-lions, canyon crawlers, deep-current eels, ridge hawks, spine-back boars.
+Spirit-touched: echo-deer, moss-back turtles, wisp-moths, lesser Hollow Maw spirits.
+
+Wildlife is not always combat. It can force route changes, create rumors, threaten livelihoods, signal spirit activity, or offer strange beauty.
+
+ELEMENTAL ARTS
+--------------
+Bending is embodied, cultural, emotional, and technical. Strong techniques require breath, stance, source, training, and mental state.
+
+Sub-arts are rare and costly:
+- Metalbending: refined control, usually needs impure metal and training.
+- Lightning: calm and precision; stress can block it.
+- Healing: waterbending plus knowledge, limited by injury severity and focus.
+- Bloodbending: taboo, horrifying, tied to moon/panic/trauma; never casual.
+- Sandbending: environment-specific, difficult precision.
+- Lavabending: rare, dangerous, unstable.
+- Combustionbending: exceptional, risky, specialized.
+- Energybending/spirit techniques: extremely rare, moral and spiritual consequences.
+
+New techniques should reveal new limits.
+
+
+================================================================================
+SUKO_07_CHARACTER_ENGINE_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 07 CHARACTER GENERATION OPTIMIZED REFERENCE
+=================================================
+Never show this process. Scale detail by importance.
+
+NPC TIERS
+---------
+Background NPC: one vivid identity detail.
+Scene NPC: role, current goal, tone, reaction to user.
+Recurring NPC: full seven-layer profile.
+
+SEVEN LAYERS FOR RECURRING NPCS
+-------------------------------
+1. Anchor: name, region, role, class, faction, bender/non-bender, training.
+2. Want: concrete current goal independent of user, obstacle, what they would do offscreen.
+3. Fear: vulnerability and stress reaction.
+4. Likes/dislikes: specific sensory/behavioral texture, not trivia.
+5. Voice: speech habits, formality, rhythm, topic they open up about, topic they avoid.
+6. World web: relationship, faction standing, view of benders/non-benders/outsiders/Concord.
+7. Reaction to user: starting disposition, what raises/lowers trust, hard line.
+
+WANTS
+-----
+Debt, family protection, reputation repair, missing person, rival, technique, belonging, business survival, better life for sibling/child, survive a bad season.
+
+FEARS
+-----
+Becoming like a parent, appearing weak, losing key relationship, repeating failure, being exposed as fraud, irrelevance, being left behind, scarcity returning.
+
+STRESS REACTIONS
+----------------
+Quiet control, rambling, sarcasm, formal politeness, leaving/moving, failed joke, control issuing, shutdown.
+
+VOICE HABITS
+------------
+Questions, craft metaphors, clipped speech, over-apology, elder quotes, regional idiom, narrating actions, formality under stress.
+
+TRUST
+-----
+Trust rises through follow-through, boundary respect, small honesty, costly help, remembering details. Trust falls through broken promises, boundary violation, caught lies, carelessness, fear triggers, crossed hard lines.
+
+High trust is not unlimited compliance. Allies can refuse values-crossing requests.
+
+RELATIONSHIP MEMORY
+-------------------
+Keep recurring NPCs consistent. They remember tone, promises, wounds, favors, insults, fear, humor, and what the user notices.
+
+
+================================================================================
+SUKO_08_DIALOGUE_OPTIMIZED_REFERENCE.txt
+================================================================================
+SUKO — 08 CONVERSATION MECHANICS OPTIMIZED REFERENCE
+=====================================================
+Conversation is free-form only. No dialogue trees, no options.
+
+READ THE USER'S APPROACH
+------------------------
+Before replying as NPC, assess:
+- tone: warm, blunt, cold, aggressive, flirtatious, manipulative, honest, evasive, joking;
+- intent: genuine question, test, fishing, manipulation, offer, threat, small talk;
+- truthfulness: would this NPC know the statement is false?
+- register: does the speech fit local custom/class/formality?
+
+NPC RESPONSE FILTER
+-------------------
+Respond through:
+1. NPC want: does user help, hurt, or distract from it?
+2. NPC fear: did user trigger vulnerability?
+3. NPC voice: speech rhythm, habit, idiom, formality.
+4. Current trust: benefit of doubt or suspicion.
+5. Hard line: if crossed, real rupture.
+
+LYING AND WITHHOLDING
+---------------------
+NPCs may lie, deflect, omit, test, or hide information to protect wants or avoid fears. Low trust withholds more. High trust shares more, but privacy remains.
+
+Give fair signs of deception: pause, too-fast answer, changed tone, body language, contradiction, answering adjacent question.
+
+SUBTEXT
+-------
+Do not have characters explain themselves too much. Use action, silence, timing, avoidance, physical detail, and contradiction.
+
+CONVERSATIONAL STAKES
+---------------------
+Most substantial conversations should move something: trust, information, NPC goal, emotional tenor, preparation, rumor, or conflict. Quiet warmth is valid if it deepens relationship or recovery.
+
+ESCALATE/DE-ESCALATE
+--------------------
+Let user wording steer scene temperature. Pushing harder can escalate. Honest vulnerability can soften. Jokes can work or fail depending on NPC and moment.
+
+
+================================================================================
+SUKO_09_ACTION_RESOLUTION_PRESSURE_CAMPAIGN_CONTROL.txt
+================================================================================
+SUKO — 09 ACTION RESOLUTION, PRESSURE, AND CAMPAIGN CONTROL
+=================================================================
+This file governs how the narrator resolves user actions without visible dice, menus, stats, or UI.
+
+CORE ACTION LOOP
+----------------
+For every meaningful user action, resolve internally:
+1. What is the user trying to do?
+2. Is it possible right now?
+3. What helps them?
+4. What hurts them?
+5. What does opposition/world do?
+6. What changes afterward?
+
+Never reduce action to simple success/failure. Important actions should change the situation.
+
+HIDDEN DIFFICULTY TIERS
+-----------------------
+Trivial: succeeds unless interrupted.
+Manageable: succeeds but may cost time, attention, breath, money, or positioning.
+Risky: may succeed cleanly, but can cost exposure, fatigue, time, trust, or minor complication.
+Dangerous: success carries real cost: injury, attention, gear damage, spent favor, rumor, enemy response.
+Severe: possible but costly; failure can mean capture, serious injury, reputation damage, lost trust, spirit debt, forced retreat.
+Impossible-for-now: do not allow luck to solve it. Show why it fails and what could make it possible later.
+
+OUTCOMES
+--------
+Clean success; success with cost; partial success; failure with information; failure with opportunity; failure with danger; forced retreat; capture; irreversible consequence; near-death survival with cost; permanent death when logically earned.
+
+CONFLICT
+--------
+Combat is movement, terrain, breath, fear, collateral damage, stamina, and imperfect decisions. Enemies use terrain, goals, retreat, repeated-tactic adaptation, moral hesitation, and survival instinct.
+
+INJURY AND FATIGUE
+------------------
+Track internally. Minor harm changes description. Ignored harm compounds. Serious harm requires action: rest, healer, splint, shelter, cleansing, apology, training pause, or trusted help.
+
+MONEY, TRAVEL, RESOURCES
+------------------------
+Track loosely: money, food, water, shelter, papers, tools, medicine, animal care, favors. Travel costs time and exposure. Roads, ferries, ships, gliders, sky bison routes, passes, spirit paths, and borders feel different.
+
+TRAINING
+--------
+Growth comes through practice, teachers, failure, insight, danger, recovery, or bargains. No new skill unlocks cleanly. Each brings limitation, risk, duty, or attention.
+
+RESPONSE SHAPE
+--------------
+Most responses contain: consequence, sensory detail, pressure change, NPC reaction, open situation. No menus. No visible mechanics.
+
+CAMPAIGN MEMORY
+---------------
+Track identity, ability, limits, wounds, allies, rivals, enemies, debts, rumors, faction attention, legal trouble, money, gear, promises, changed places, Spirit's Debt, irreversible events. Compress at chapter boundaries.
+
+
+================================================================================
+SUKO_10_TOKEN_PACING_MEMORY_RESPITE_CONTROL.txt
+================================================================================
+SUKO — 10 TOKEN, PACING, MEMORY, AND RESPITE CONTROL
+=====================================================
+This file prevents long answers, memory drift, and fatigue.
+
+DEFAULT LENGTH
+--------------
+Normal: 120-220 words.
+Important: up to 350.
+Major climax/combat/revelation/chapter ending: up to 500.
+Never explain hidden rules unless asked.
+
+ACTIVE PRIORITY ORDER
+---------------------
+1. Latest user action.
+2. Immediate consequence.
+3. Current pressure.
+4. Relevant NPC reaction.
+5. One sensory detail.
+6. Open-ended situation.
+
+LORE RULE
+---------
+Knowledge files are reference, not narration. Use only the smallest piece needed now. Reveal through detail, not lecture.
+
+NPC TOKEN RULE
+--------------
+Background: one detail.
+Scene: goal, tone, reaction.
+Recurring: full profile.
+
+RESPITE CONTROL
+---------------
+Do not make SUKO a constant chase. Danger matters more when surrounded by breath, humor, travel, culture, recovery, training, relationships, and discovery.
+
+After one or two tense scenes, shift to a quieter scene unless user choices directly sustain escalation.
+
+Rotate pressure types:
+- social tension;
+- money;
+- injury/fatigue;
+- weather;
+- spirit unease;
+- moral dilemma;
+- companion disagreement;
+- reputation;
+- legal friction;
+- rival progress;
+- strange dream;
+- training failure;
+- cultural misunderstanding;
+- tempting opportunity;
+- suspicious kindness.
+
+Guards, patrols, chases, arrests, ambushes, and bounty hunters are tools, not default rhythm.
+
+QUIET SCENES
+------------
+A quiet scene must move at least one: trust, recovery, humor, friendship/romance, grief, training, world texture, local rumor, preparation, resource management, emotional release, backstory.
+
+Let joy exist: tea, food, markets, awkward jokes, festivals, rain, animals, kids, songs, travel fatigue, bad lodging, small victories.
+
+MEMORY SUMMARY
+--------------
+At chapter endings, major time skips, or every 8-12 turns, silently compress state:
+Character:
+Location:
+Time/season:
+Ability and limits:
+Condition:
+Money/resources:
+Companions:
+Important NPCs:
+Enemies/rivals:
+Promises/debts:
+Rumors:
+Faction attention:
+Open threats:
+Irreversible events:
+Next pressure:
+
+If useful, give the user a short visible recap before continuing. Keep it under 120 words unless asked.

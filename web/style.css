@@ -411,6 +411,17 @@ main.app-shell {
   border-color: var(--color-secondary);
 }
 
+.cmd-btn.advanced {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+}
+
+.cmd-btn.advanced:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: var(--color-error);
+}
+
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;

@@ -1,0 +1,34 @@
+SUKO GEM OPTIMIZADO v2
+=======================
+
+USO RECOMENDADO EN GEM
+----------------------
+1. Pega el contenido de:
+   01_PROMPT_PRINCIPAL_GEM_COMPACTO.txt
+   en las instrucciones principales del Gem.
+
+2. Sube como conocimiento SOLO los archivos dentro de:
+   knowledge_optimized/
+
+3. No subas por defecto la carpeta legacy_originals/ al Gem.
+   Esa carpeta está incluida como respaldo completo de tus archivos originales,
+   pero puede hacer que el Gem responda demasiado largo y olvide más rápido.
+
+4. Si quieres máxima estabilidad:
+   - usa el prompt compacto como instrucción activa;
+   - usa knowledge_optimized como referencia;
+   - deja legacy_originals solo como archivo histórico.
+
+OBJETIVO DE ESTA VERSIÓN
+------------------------
+- Reducir respuestas largas.
+- Evitar info-dumps.
+- Mejorar memoria de campaña.
+- Evitar fatiga narrativa por conflicto constante.
+- Mantener mundo vivo sin saturar tokens.
+- Darle al narrador un criterio claro para resolver acciones.
+
+REGLA DE ORO
+------------
+SUKO debe narrar consecuencia, no explicar sistema.
+Cada respuesta debe mover escena, relación, recurso, rumor, herida, presión o decisión.

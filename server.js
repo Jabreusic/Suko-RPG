@@ -143,9 +143,10 @@ async function logEvent(campaignId, level, message, raw) {
 }
 
 function processCommandAction(message, state) {
-  // Procesa comandos combinables: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar
+  // Procesa comandos básicos y avanzados
   const msg = message.toLowerCase().trim();
   
+  // COMANDOS BÁSICOS
   if (msg.startsWith('/decir')) {
     const text = message.slice(6).trim();
     return text ? `Dices en voz alta: "${text}"` : 'Abres la boca pero ningún sonido sale.';
@@ -181,7 +182,38 @@ function processCommandAction(message, state) {
     return action ? `Intentas ${action}. La situación cambia sutilmente.` : 'Permaneces quieto, reflexionando.';
   }
   
-  return 'Comando no reconocido. Intenta: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar';
+  // COMANDOS AVANZADOS
+  if (msg.startsWith('/combate')) {
+    const enemy = message.slice(8).trim();
+    if (!enemy) return 'Especifica contra quién combatirás: /combate [enemigo]';
+    return `⚔️ Combate iniciado contra ${enemy}.\nRolada (1-20): ${Math.floor(Math.random() * 20) + 1}\n${enemy} resiste. Describe tu próximo movimiento.`;
+  }
+  
+  if (msg.startsWith('/negociar')) {
+    const target = message.slice(9).trim();
+    if (!target) return 'Con quién negociarás: /negociar [NPC/facción]';
+    return `💬 Abres negociación con ${target}.\n"Escucho lo que propones..." dice ${target}.\nPresenta tu oferta o argumento.`;
+  }
+  
+  if (msg.startsWith('/estudiar')) {
+    const tech = message.slice(9).trim();
+    if (!tech) return 'Qué técnica quieres estudiar: /estudiar [técnica]';
+    return `📖 Comienzas a estudiar ${tech}.\nTe sumergirás en entrenamiento intenso durante días. Los progresos requieren práctica y mentoring de alguien experimentado.`;
+  }
+  
+  if (msg.startsWith('/viajar')) {
+    const destination = message.slice(7).trim();
+    if (!destination) return 'Adónde viajas: /viajar [destino]';
+    return `🛣️ Inicias viaje hacia ${destination}.\nEl camino es largo. Describe qué sucede en ruta o si buscas hospedaje en algún pueblo.`;
+  }
+  
+  if (msg.startsWith('/investigar')) {
+    const target = message.slice(11).trim();
+    if (!target) return 'Qué investigarás: /investigar [objetivo]';
+    return `🔍 Comienzas investigación sobre ${target}.\nReunes información localmente. Los rumores hablan de... algo que necesita más profundidad. ¿Dónde buscarás?`;
+  }
+  
+  return 'Comando no reconocido. Intenta: /hacer, /decir, /examinar, /atacar, /usar, /hablar, /buscar, /combate, /negociar, /estudiar, /viajar, /investigar';
 }
 
 // Routes

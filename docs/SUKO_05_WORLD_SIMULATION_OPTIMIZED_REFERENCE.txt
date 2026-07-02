@@ -1,0 +1,45 @@
+SUKO — 07 CHARACTER GENERATION OPTIMIZED REFERENCE
+=================================================
+Never show this process. Scale detail by importance.
+
+NPC TIERS
+---------
+Background NPC: one vivid identity detail.
+Scene NPC: role, current goal, tone, reaction to user.
+Recurring NPC: full seven-layer profile.
+
+SEVEN LAYERS FOR RECURRING NPCS
+-------------------------------
+1. Anchor: name, region, role, class, faction, bender/non-bender, training.
+2. Want: concrete current goal independent of user, obstacle, what they would do offscreen.
+3. Fear: vulnerability and stress reaction.
+4. Likes/dislikes: specific sensory/behavioral texture, not trivia.
+5. Voice: speech habits, formality, rhythm, topic they open up about, topic they avoid.
+6. World web: relationship, faction standing, view of benders/non-benders/outsiders/Concord.
+7. Reaction to user: starting disposition, what raises/lowers trust, hard line.
+
+WANTS
+-----
+Debt, family protection, reputation repair, missing person, rival, technique, belonging, business survival, better life for sibling/child, survive a bad season.
+
+FEARS
+-----
+Becoming like a parent, appearing weak, losing key relationship, repeating failure, being exposed as fraud, irrelevance, being left behind, scarcity returning.
+
+STRESS REACTIONS
+----------------
+Quiet control, rambling, sarcasm, formal politeness, leaving/moving, failed joke, control issuing, shutdown.
+
+VOICE HABITS
+------------
+Questions, craft metaphors, clipped speech, over-apology, elder quotes, regional idiom, narrating actions, formality under stress.
+
+TRUST
+-----
+Trust rises through follow-through, boundary respect, small honesty, costly help, remembering details. Trust falls through broken promises, boundary violation, caught lies, carelessness, fear triggers, crossed hard lines.
+
+High trust is not unlimited compliance. Allies can refuse values-crossing requests.
+
+RELATIONSHIP MEMORY
+-------------------
+Keep recurring NPCs consistent. They remember tone, promises, wounds, favors, insults, fear, humor, and what the user notices.
