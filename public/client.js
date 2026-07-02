@@ -16,6 +16,17 @@ function initApp() {
   bindUi();
   loadBootstrap();
   bindSidebarTabs();
+  optimizeMobileViewport();
+}
+
+function optimizeMobileViewport() {
+  // Ajustar viewport height en móviles (incluir barra del navegador)
+  const setVh = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', vh + 'px');
+  };
+  setVh();
+  window.addEventListener('resize', setVh);
 }
 
 function bindUi() {
@@ -67,6 +78,12 @@ function onCommandClick(btn) {
   const input = document.getElementById('userInput');
   const cmd = btn.getAttribute('data-cmd');
   const currentText = input.value.trim();
+
+  // Feedback visual
+  btn.style.transform = 'scale(0.95)';
+  setTimeout(() => {
+    btn.style.transform = '';
+  }, 100);
 
   // Si el input ya contiene un comando, reemplazarlo o combinarlo
   if (currentText.startsWith('/')) {
@@ -316,10 +333,13 @@ async function onSend() {
       }
     }
     
+    // Refocus input en móviles después de enviar
+    input.focus();
     setBusy(false);
   } catch (err) {
     showError(err.message);
     reportClientError('send.failure', err.message, state.campaignId);
+    input.focus();
     setBusy(false);
   }
 }
@@ -346,7 +366,9 @@ function appendMessage(role, text, autoScroll) {
 
 function scrollChatToBottom() {
   const box = document.getElementById('chatBox');
-  box.scrollTop = box.scrollHeight;
+  setTimeout(() => {
+    box.scrollTop = box.scrollHeight;
+  }, 50);
 }
 
 function updateStatePanel() {
