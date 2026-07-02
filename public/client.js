@@ -1,641 +1,445 @@
+// SUKO RPG - Mobile Client
 const API_BASE = window.location.origin;
 const STORE_KEY = 'suko_campaign_id';
 
 const state = {
   campaignId: '',
   busy: false,
-  campaigns: [],
+  messages: [],
   currentState: {},
   inventory: [],
-  locations: []
+  locations: [],
+  pressures: [],
+  factions: []
 };
 
 document.addEventListener('DOMContentLoaded', initApp);
 
 function initApp() {
-  bindUi();
+  bindMenus();
+  bindTabs();
+  bindCommands();
+  bindInput();
   loadBootstrap();
-  bindSidebarTabs();
-  optimizeMobileViewport();
 }
 
-function optimizeMobileViewport() {
-  // Ajustar viewport height en móviles (incluir barra del navegador)
-  const setVh = () => {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', vh + 'px');
-  };
-  setVh();
-  window.addEventListener('resize', setVh);
-}
+/* ========== MENUS & MODALS ========== */
 
-function bindUi() {
-  document.getElementById('createCampaignBtn').addEventListener('click', onCreateCampaign);
-  document.getElementById('loadCampaignBtn').addEventListener('click', onLoadCampaign);
-  document.getElementById('sendBtn').addEventListener('click', onSend);
+function bindMenus() {
+  // Menu hamburguesa
+  document.getElementById('menuBtn').addEventListener('click', toggleMenu);
+  document.getElementById('closeMenuBtn').addEventListener('click', toggleMenu);
+  document.getElementById('menuOverlay').addEventListener('click', toggleMenu);
 
-  document.getElementById('userInput').addEventListener('keydown', function (ev) {
-    if (ev.key === 'Enter' && !ev.shiftKey) {
-      ev.preventDefault();
-      onSend();
+  // Menu items
+  document.getElementById('newGameBtn').addEventListener('click', () => {
+    toggleMenu();
+    showModal('newCampaignModal');
+  });
+  document.getElementById('loadGameBtn').addEventListener('click', () => {
+    toggleMenu();
+    showModal('loadCampaignModal');
+    loadCampaignList();
+  });
+  document.getElementById('saveGameBtn').addEventListener('click', () => {
+    toggleMenu();
+    alert('Partida guardada automáticamente.');
+  });
+  document.getElementById('clearCacheBtn').addEventListener('click', () => {
+    if (confirm('¿Limpiar caché? Perderás datos temporales.')) {
+      localStorage.clear();
+      toggleMenu();
+      location.reload();
+    }
+  });
+  document.getElementById('deleteDataBtn').addEventListener('click', () => {
+    if (confirm('¿BORRAR TODO? ⚠️ No se puede deshacer.')) {
+      localStorage.clear();
+      indexedDB.deleteDatabase('SukoRPG');
+      toggleMenu();
+      location.reload();
     }
   });
 
-  // Dropdown toggle listeners
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-toggle'), function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      toggleDropdown(this);
+  // Stats button
+  document.getElementById('statsBtn').addEventListener('click', () => {
+    showModal('statsModal');
+    updateStatsPanel();
+  });
+
+  // Modal close buttons
+  document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const modal = e.target.closest('.modal');
+      if (modal) closeModal(modal.id);
     });
   });
 
-  // Dropdown item listeners
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-item'), function (item) {
-    item.addEventListener('click', function () {
-      onCommandClick(this);
-      closeAllDropdowns();
-    });
+  // Campaign modal buttons
+  document.getElementById('createNewCampaignBtn').addEventListener('click', async () => {
+    const playerName = document.getElementById('playerNameInput').value.trim();
+    const characterName = document.getElementById('characterNameInput').value.trim();
+    
+    if (!playerName || !characterName) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+    
+    await createCampaign(playerName, characterName);
+    closeModal('newCampaignModal');
   });
 
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', closeAllDropdowns);
-
-  // Botones especiales del sidebar
-  document.getElementById('estadoBtn').addEventListener('click', function () {
-    document.getElementById('userInput').value = '/estado';
-    onSend();
-  });
-
-  document.getElementById('presionBtn').addEventListener('click', function () {
-    updatePressurePanel();
-  });
-
-  document.getElementById('inventarioBtn').addEventListener('click', function () {
-    document.getElementById('userInput').value = '/inventario';
-    onSend();
-  });
-
-  document.getElementById('mapaBtn').addEventListener('click', function () {
-    document.getElementById('userInput').value = '/mapa';
-    onSend();
-  });
-
-  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (btn) {
-    btn.addEventListener('click', function () {
-      const cmd = btn.getAttribute('data-command');
-      if (!cmd) return;
-      document.getElementById('userInput').value = cmd;
-      onSend();
-    });
-  });
-}
-
-function toggleDropdown(btn) {
-  const dropdownName = btn.getAttribute('data-dropdown');
-  const menu = document.getElementById(dropdownName + '-menu');
-  
-  // Close all other dropdowns
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-menu'), function (m) {
-    if (m !== menu) {
-      m.classList.remove('active');
+  document.getElementById('loadSelectedCampaignBtn').addEventListener('click', () => {
+    const campaignId = document.getElementById('campaignSelectDropdown').value;
+    if (campaignId) {
+      loadCampaign(campaignId);
+      closeModal('loadCampaignModal');
     }
   });
-  
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-toggle'), function (b) {
-    if (b !== btn) {
-      b.classList.remove('active');
-    }
-  });
-  
-  // Toggle current dropdown
-  menu.classList.toggle('active');
-  btn.classList.toggle('active');
 }
 
-function closeAllDropdowns() {
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-menu'), function (m) {
-    m.classList.remove('active');
-  });
+function toggleMenu() {
+  const menu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('menuOverlay');
   
-  Array.prototype.forEach.call(document.querySelectorAll('.dropdown-toggle'), function (b) {
-    b.classList.remove('active');
-  });
+  menu.classList.toggle('hidden');
+  overlay.classList.toggle('hidden');
 }
 
-function onCommandClick(btn) {
-  const input = document.getElementById('userInput');
-  const cmd = btn.getAttribute('data-cmd');
-  const currentText = input.value.trim();
-
-  // Feedback visual
-  btn.style.transform = 'scale(0.95)';
-  setTimeout(() => {
-    btn.style.transform = '';
-  }, 100);
-
-  // Si el input ya contiene un comando, reemplazarlo o combinarlo
-  if (currentText.startsWith('/')) {
-    // Reemplazar el comando anterior
-    input.value = cmd + ' ';
-  } else {
-    // Agregar comando
-    if (currentText) {
-      input.value = cmd + ' ' + currentText;
-    } else {
-      input.value = cmd + ' ';
-    }
-  }
-
-  input.focus();
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove('hidden');
 }
 
-function bindSidebarTabs() {
-  Array.prototype.forEach.call(document.querySelectorAll('.tab-btn'), function (btn) {
-    btn.addEventListener('click', function () {
-      const tabName = btn.getAttribute('data-tab');
-      switchTab(tabName);
-    });
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.add('hidden');
+}
+
+/* ========== TABS ========== */
+
+function bindTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 }
 
 function switchTab(tabName) {
-  // Deactivate all tabs and panels
-  Array.prototype.forEach.call(document.querySelectorAll('.tab-btn'), function (b) {
-    b.classList.remove('active');
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('.sidebar-panel'), function (p) {
-    p.classList.remove('active');
-  });
-
-  // Activate selected tab and panel
-  var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
-  var activePanel = document.getElementById(tabName + 'Panel');
+  // Deactivate all tabs
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   
-  if (activeBtn) activeBtn.classList.add('active');
-  if (activePanel) activePanel.classList.add('active');
+  // Activate selected tab
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  document.getElementById(`${tabName}Tab`).classList.add('active');
+  
+  // Update panel content on tab switch
+  if (tabName === 'presion') {
+    updatePresionTab();
+  } else if (tabName === 'inventario') {
+    updateInventarioTab();
+  } else if (tabName === 'mapa') {
+    updateMapaTab();
+  }
 }
 
+/* ========== CHAT & INPUT ========== */
+
+function bindCommands() {
+  document.querySelectorAll('.cmd-quick').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('userInput').value = btn.dataset.cmd;
+      onSend();
+    });
+  });
+}
+
+function bindInput() {
+  const input = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  
+  sendBtn.addEventListener('click', onSend);
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  });
+}
+
+async function onSend() {
+  const input = document.getElementById('userInput');
+  const message = input.value.trim();
+  
+  if (!message || !state.campaignId || state.busy) return;
+  
+  state.busy = true;
+  input.value = '';
+  
+  try {
+    // Add user message to chat
+    addChatMessage(message, 'user');
+    
+    // Send to server
+    const res = await fetch(`${API_BASE}/api/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        campaignId: state.campaignId,
+        message: message
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.ok) {
+      // Add AI response
+      addChatMessage(data.narration, 'assistant');
+      
+      // Update state
+      if (data.state) state.currentState = data.state;
+      if (data.inventory) state.inventory = data.inventory;
+      if (data.locations) state.locations = data.locations;
+      if (data.pressures) state.pressures = data.pressures;
+      if (data.factions) state.factions = data.factions;
+      
+      // Update panels
+      updatePresionTab();
+    } else {
+      showError(data.error || 'Error desconocido');
+    }
+  } catch (err) {
+    showError('Error de conexión: ' + err.message);
+  } finally {
+    state.busy = false;
+  }
+}
+
+function addChatMessage(text, role) {
+  const chatBox = document.getElementById('chatBox');
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}`;
+  msg.textContent = text;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function showError(text) {
+  const errorBox = document.getElementById('errorBox');
+  errorBox.textContent = text;
+  errorBox.classList.remove('hidden');
+  setTimeout(() => errorBox.classList.add('hidden'), 5000);
+}
+
+/* ========== CAMPAIGN MANAGEMENT ========== */
+
 async function loadBootstrap() {
-  clearError();
   try {
     const res = await fetch(`${API_BASE}/api/bootstrap`);
     const data = await res.json();
-
-    if (!data || !data.ok) {
-      showError((data && data.error) || 'No pude cargar campañas.');
-      reportClientError('loadBootstrap.result', (data && data.error) || 'Respuesta inválida');
-      return;
-    }
-
+    
     state.campaigns = data.campaigns || [];
-    renderCampaignSelect();
-
-    const saved = localStorage.getItem(STORE_KEY);
-    if (isValidCampaignId(saved) && state.campaigns.some(function (c) { return c.campaign_id === saved; })) {
-      state.campaignId = saved;
-      document.getElementById('campaignSelect').value = saved;
-      loadCampaign(saved);
+    
+    const savedCampaignId = localStorage.getItem(STORE_KEY);
+    if (savedCampaignId && state.campaigns.find(c => c.campaign_id === savedCampaignId)) {
+      loadCampaign(savedCampaignId);
+    } else {
+      showInitScreen();
     }
   } catch (err) {
-    showError('No se pudo conectar con el servidor.');
-    reportClientError('loadBootstrap.failure', err.message);
+    console.error('Bootstrap error:', err);
+    showInitScreen();
   }
 }
 
-function renderCampaignSelect() {
-  const select = document.getElementById('campaignSelect');
-  select.innerHTML = '';
-
-  if (!state.campaigns.length) {
-    const empty = document.createElement('option');
-    empty.value = '';
-    empty.textContent = 'Sin campañas';
-    select.appendChild(empty);
-    return;
-  }
-
-  state.campaigns.forEach(function (c) {
-    const op = document.createElement('option');
-    op.value = c.campaign_id;
-    op.textContent = c.character_name + ' (' + c.player_name + ')';
-    select.appendChild(op);
+function showInitScreen() {
+  // Hide app, show init screen
+  document.querySelector('.app-container').style.display = 'none';
+  document.getElementById('campaignInitPanel').classList.remove('hidden');
+  
+  document.getElementById('initNewBtn').addEventListener('click', () => {
+    document.getElementById('campaignInitPanel').classList.add('hidden');
+    document.querySelector('.app-container').style.display = 'flex';
+    showModal('newCampaignModal');
+  });
+  
+  document.getElementById('initLoadBtn').addEventListener('click', () => {
+    document.getElementById('campaignInitPanel').classList.add('hidden');
+    document.querySelector('.app-container').style.display = 'flex';
+    showModal('loadCampaignModal');
+    loadCampaignList();
   });
 }
 
-async function onCreateCampaign() {
-  if (state.busy) return;
-
-  const playerName = (document.getElementById('playerName').value || '').trim();
-  const characterName = (document.getElementById('characterName').value || '').trim();
-
-  if (!playerName || !characterName) {
-    showError('Escribe nombre de jugador y personaje.');
-    reportClientError('createCampaign.validation', 'Faltan nombres');
-    return;
-  }
-
-  setBusy(true);
-  clearError();
-
+async function createCampaign(playerName, characterName) {
   try {
     const res = await fetch(`${API_BASE}/api/campaign`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerName, characterName })
     });
-
+    
     const data = await res.json();
-
-    if (!data || !data.ok) {
-      showError('No pude crear la campaña.');
-      setBusy(false);
-      return;
+    
+    if (data.ok) {
+      state.campaignId = data.campaign_id;
+      localStorage.setItem(STORE_KEY, data.campaign_id);
+      loadCampaign(data.campaign_id);
+    } else {
+      showError('Error creando partida');
     }
-
-    state.campaignId = data.campaign_id;
-    localStorage.setItem(STORE_KEY, data.campaign_id);
-    document.getElementById('playerName').value = '';
-    document.getElementById('characterName').value = '';
-    appendMessage('assistant', 'Campaña creada. Iniciando escena...');
-    loadBootstrap();
-    loadCampaign(data.campaign_id);
   } catch (err) {
-    showError(err.message);
-    reportClientError('createCampaign.failure', err.message);
-    setBusy(false);
+    showError('Error: ' + err.message);
   }
 }
 
-function onLoadCampaign() {
-  const id = document.getElementById('campaignSelect').value;
-  if (!id) {
-    showError('Selecciona una campaña.');
-    reportClientError('loadCampaign.validation', 'Sin campaign_id');
-    return;
-  }
-  loadCampaign(id);
+function loadCampaignList() {
+  const dropdown = document.getElementById('campaignSelectDropdown');
+  dropdown.innerHTML = '<option value="">-- Selecciona una partida --</option>';
+  
+  state.campaigns.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.campaign_id;
+    opt.textContent = `${c.campaign_id} - ${new Date(c.created_at).toLocaleDateString('es-ES')}`;
+    dropdown.appendChild(opt);
+  });
 }
 
 async function loadCampaign(campaignId) {
-  if (!isValidCampaignId(campaignId)) {
-    showError('campaign_id inválido.');
-    reportClientError('loadCampaign.validation', 'campaign_id inválido: ' + String(campaignId || ''));
-    return;
-  }
-
-  setBusy(true);
-  clearError();
-
   try {
     const res = await fetch(`${API_BASE}/api/campaign/${campaignId}`);
     const data = await res.json();
-
-    if (!data || !data.ok) {
-      showError((data && data.error) || 'No pude cargar la campaña.');
-      reportClientError('loadCampaign.result', (data && data.error) || 'Respuesta inválida', campaignId);
-      setBusy(false);
-      return;
+    
+    if (data.ok) {
+      state.campaignId = campaignId;
+      state.currentState = data.state || {};
+      state.messages = data.messages || [];
+      localStorage.setItem(STORE_KEY, campaignId);
+      
+      // Show app
+      document.querySelector('.app-container').style.display = 'flex';
+      document.getElementById('campaignInitPanel').classList.add('hidden');
+      
+      // Render messages
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = '';
+      data.messages?.forEach(msg => {
+        addChatMessage(msg.content, msg.role);
+      });
+      
+      // Load pressures and factions
+      updatePresionTab();
     }
-
-    state.campaignId = campaignId;
-    state.currentState = data.state || {};
-    state.inventory = data.inventory || [];
-    state.locations = data.locations || [];
-    
-    localStorage.setItem(STORE_KEY, campaignId);
-    
-    // Ocultar panel de campañas, mostrar sidebar
-    document.getElementById('campaignPanel').style.display = 'none';
-    
-    renderMessages(data.messages || []);
-    updateStatePanel();
-    updatePressurePanel();
-    updateInventoryPanel();
-    updateMapPanel();
-    
-    setBusy(false);
   } catch (err) {
-    showError(err.message);
-    reportClientError('loadCampaign.failure', err.message, campaignId);
-    setBusy(false);
+    showError('Error cargando partida: ' + err.message);
   }
 }
 
-async function onSend() {
-  if (state.busy) return;
-  if (!isValidCampaignId(state.campaignId)) {
-    showError('Primero crea o carga una campaña.');
-    reportClientError('send.validation', 'No hay campaña activa.');
-    return;
-  }
+/* ========== PANEL UPDATES ========== */
 
-  const input = document.getElementById('userInput');
-  const text = (input.value || '').trim();
-  if (!text) return;
-
-  const isSpecialCommand = text.startsWith('/');
-  
-  input.value = '';
-  if (!isSpecialCommand) {
-    appendMessage('user', text);
-  }
-
-  setBusy(true);
-  clearError();
-
-  try {
-    const res = await fetch(`${API_BASE}/api/message`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ campaignId: state.campaignId, message: text })
-    });
-
-    const data = await res.json();
-
-    if (!data || !data.ok) {
-      showError((data && data.error) || 'No hubo respuesta.');
-      setBusy(false);
-      return;
-    }
-
-    // Update state from response
-    if (data.state) {
-      state.currentState = data.state;
-      updateStatePanel();
-    }
-    if (data.inventory) {
-      state.inventory = data.inventory;
-      updateInventoryPanel();
-    }
-    if (data.locations) {
-      state.locations = data.locations;
-      updateMapPanel();
-    }
+function updatePresionTab() {
+  if (state.pressures && state.pressures.length > 0) {
+    const pressureListTab = document.getElementById('pressureListTab');
+    pressureListTab.innerHTML = '';
     
-    // Update pressures/factions if provided in response
-    if (data.pressures || data.factions) {
-      renderPressureFactionsPanelFromData(data.pressures || [], data.factions || []);
-    }
-
-    // Show narration only if not a special command
-    if (!isSpecialCommand) {
-      appendMessage('assistant', data.narration || '...');
-    } else {
-      // For special commands, show brief response in chat
-      if (data.narration) {
-        appendMessage('assistant', data.narration);
-      }
-    }
-    
-    // Refocus input en móviles después de enviar
-    input.focus();
-    setBusy(false);
-  } catch (err) {
-    showError(err.message);
-    reportClientError('send.failure', err.message, state.campaignId);
-    input.focus();
-    setBusy(false);
-  }
-}
-
-function renderMessages(messages) {
-  const box = document.getElementById('chatBox');
-  box.innerHTML = '';
-  messages.forEach(function (m) {
-    appendMessage(m.role === 'user' ? 'user' : 'assistant', String(m.content || ''), false);
-  });
-  scrollChatToBottom();
-}
-
-function appendMessage(role, text, autoScroll) {
-  const box = document.getElementById('chatBox');
-  const msg = document.createElement('div');
-  msg.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
-  msg.textContent = sanitizeClientText(text || '');
-  box.appendChild(msg);
-  if (autoScroll !== false) {
-    scrollChatToBottom();
-  }
-}
-
-function scrollChatToBottom() {
-  const box = document.getElementById('chatBox');
-  setTimeout(() => {
-    box.scrollTop = box.scrollHeight;
-  }, 50);
-}
-
-function updateStatePanel() {
-  const st = state.currentState || {};
-  document.getElementById('statLocation').textContent = st.location || '-';
-  document.getElementById('statRegion').textContent = st.region || '-';
-  document.getElementById('statMoney').textContent = (st.money || '0') + ' oro';
-  document.getElementById('statFatigue').textContent = st.fatigue || '-';
-
-  // NPCs presentes
-  const npcList = document.getElementById('npcList');
-  npcList.innerHTML = '';
-  if (state.inventory && state.inventory.length > 0) {
-    // Mock: mostrar algunos inventory items como NPCs presentes (Gemini puede customizar)
-    state.inventory.slice(0, 3).forEach(function (item) {
-      const el = document.createElement('div');
-      el.className = 'npc-item';
-      el.textContent = item.name || item;
-      npcList.appendChild(el);
-    });
-  } else {
-    npcList.innerHTML = '<div class="npc-item">Nadie visible</div>';
-  }
-
-  // Items en suelo (mock)
-  const floorItems = document.getElementById('floorItems');
-  floorItems.innerHTML = '<div class="item-entry">Nada interesante</div>';
-}
-
-function updateInventoryPanel() {
-  const list = document.getElementById('inventoryList');
-  list.innerHTML = '';
-
-  if (!state.inventory || state.inventory.length === 0) {
-    list.innerHTML = '<div class="item-entry">Mochila vacía</div>';
-    return;
-  }
-
-  state.inventory.forEach(function (item) {
-    const el = document.createElement('div');
-    el.className = 'item-entry';
-    el.textContent = (typeof item === 'string') ? item : (item.name || 'Item desconocido');
-    list.appendChild(el);
-  });
-}
-
-function updateMapPanel() {
-  const list = document.getElementById('locationList');
-  list.innerHTML = '';
-
-  if (!state.locations || state.locations.length === 0) {
-    list.innerHTML = '<button class="location-btn">No hay ubicaciones</button>';
-    return;
-  }
-
-  state.locations.forEach(function (loc) {
-    const btn = document.createElement('button');
-    btn.className = 'location-btn';
-    btn.textContent = (typeof loc === 'string') ? loc : (loc.name || 'Ubicación');
-    btn.addEventListener('click', function () {
-      const travel = '/viajar a ' + btn.textContent;
-      document.getElementById('userInput').value = travel;
-      onSend();
-    });
-    list.appendChild(btn);
-  });
-}
-
-// Render pressures/factions directly from response data (without additional fetch)
-function renderPressureFactionsPanelFromData(pressures, factions) {
-  const pressureListEl = document.getElementById('pressureList');
-  const factionListEl = document.getElementById('factionList');
-
-  if (!pressureListEl || !factionListEl) return;
-
-  // Render presiones
-  if (pressures.length === 0) {
-    pressureListEl.innerHTML = '<p class="placeholder">Sin presión activa</p>';
-  } else {
-    pressureListEl.innerHTML = '';
-    pressures.forEach(function (p) {
-      const severity = Array(Math.min(5, p.severity || 1)).fill('⚡').join('');
+    state.pressures.forEach(p => {
       const el = document.createElement('div');
       el.className = 'pressure-item';
-      el.innerHTML = '<div class="pressure-type">' + (p.pressure_type || 'unknown') + '</div>' +
-        '<div class="pressure-desc">' + (p.description || '') + '</div>' +
-        '<div class="pressure-severity">' + severity + '</div>';
-      pressureListEl.appendChild(el);
+      const severity = '⚡'.repeat(Math.min(5, p.severity || 1));
+      el.innerHTML = `
+        <div class="pressure-type">${p.pressure_type}</div>
+        <div class="pressure-desc">${p.description}</div>
+        <div class="pressure-severity">${severity}</div>
+      `;
+      pressureListTab.appendChild(el);
     });
   }
-
-  // Render facciones
-  factionListEl.innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4>';
-  if (factions.length === 0) {
-    factionListEl.innerHTML += '<p class="placeholder">Sin actividad factional</p>';
-  } else {
-    factions.forEach(function (f) {
-      const pct = Math.min(100, Math.max(0, f.progress_pct || 0));
+  
+  if (state.factions && state.factions.length > 0) {
+    const factionListTab = document.getElementById('factionListTab');
+    factionListTab.innerHTML = '';
+    
+    state.factions.forEach(f => {
       const el = document.createElement('div');
       el.className = 'faction-item';
-      el.innerHTML = '<div class="faction-name">' + (f.faction_name || 'Facción') + '</div>' +
-        '<div class="faction-goal">' + (f.current_goal || 'Objetivo') + '</div>' +
-        '<div class="progress-bar"><div class="progress-fill" style="width: ' + pct + '%"></div></div>' +
-        '<div class="progress-pct">' + pct + '%</div>';
-      factionListEl.appendChild(el);
+      el.innerHTML = `
+        <div class="faction-name">${f.faction_name}</div>
+        <div class="faction-goal">${f.current_goal}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${f.progress_pct}%"></div>
+        </div>
+        <div class="progress-pct">${f.progress_pct}%</div>
+      `;
+      factionListTab.appendChild(el);
     });
   }
 }
 
-async function updatePressurePanel() {
-  if (!isValidCampaignId(state.campaignId)) {
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/api/pressure/${state.campaignId}`);
-    const data = await res.json();
-
-    const pressureListEl = document.getElementById('pressureList');
-    const factionListEl = document.getElementById('factionList');
-
-    if (!data || !data.ok) {
-      pressureListEl.innerHTML = '<p class="placeholder">Error cargando presión</p>';
-      factionListEl.innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4><p class="placeholder">Error</p>';
-      return;
-    }
-
-    // Render presiones
-    const pressures = data.pressures || [];
-    if (pressures.length === 0) {
-      pressureListEl.innerHTML = '<p class="placeholder">Sin presión activa</p>';
-    } else {
-      pressureListEl.innerHTML = '';
-      pressures.forEach(function (p) {
-        const severity = Array(p.severity || 1).join('⚡');
-        const el = document.createElement('div');
-        el.className = 'pressure-item';
-        el.innerHTML = `<div class="pressure-type">${p.pressure_type}</div>
-          <div class="pressure-desc">${p.description}</div>
-          <div class="pressure-severity">${severity}</div>`;
-        pressureListEl.appendChild(el);
-      });
-    }
-
-    // Render facciones
-    const factions = data.factions || [];
-    factionListEl.innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4>';
-    if (factions.length === 0) {
-      factionListEl.innerHTML += '<p class="placeholder">Sin facciones</p>';
-    } else {
-      factions.forEach(function (f) {
-        const pct = Math.min(100, Math.max(0, f.progress_pct || 0));
-        const el = document.createElement('div');
-        el.className = 'faction-item';
-        el.innerHTML = `<div class="faction-name">${f.faction_name}</div>
-          <div class="faction-goal">${f.current_goal || 'Objetivo'}</div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${pct}%"></div>
-          </div>
-          <div class="progress-pct">${pct}%</div>`;
-        factionListEl.appendChild(el);
-      });
-    }
-  } catch (err) {
-    console.error('Error updating pressure:', err);
-    document.getElementById('pressureList').innerHTML = '<p class="placeholder">Error</p>';
-    document.getElementById('factionList').innerHTML = '<h4 style="margin: 0.5rem 0;">Facciones</h4><p class="placeholder">Error</p>';
-  }
-}
-
-function setBusy(isBusy) {
-  state.busy = !!isBusy;
-  document.getElementById('sendBtn').disabled = state.busy;
-  document.getElementById('createCampaignBtn').disabled = state.busy;
-  document.getElementById('loadCampaignBtn').disabled = state.busy;
-  document.getElementById('sendBtn').textContent = state.busy ? 'Pensando...' : 'Enviar';
-}
-
-function showError(msg) {
-  const box = document.getElementById('errorBox');
-  box.textContent = msg || 'Ocurrió un error inesperado.';
-  box.classList.remove('hidden');
-}
-
-function clearError() {
-  const box = document.getElementById('errorBox');
-  box.textContent = '';
-  box.classList.add('hidden');
-}
-
-function sanitizeClientText(text) {
-  return String(text)
-    .replace(/[\u0000-\u001F\u007F]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-async function reportClientError(context, message, campaignId) {
-  try {
-    await fetch(`${API_BASE}/api/log`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        context,
-        message,
-        campaignId: campaignId || state.campaignId || ''
-      })
+function updateInventarioTab() {
+  const list = document.getElementById('inventoryListTab');
+  
+  if (state.inventory && state.inventory.length > 0) {
+    list.innerHTML = '';
+    state.inventory.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'item-entry';
+      el.textContent = item.name || item.item_name || 'Item';
+      list.appendChild(el);
     });
-  } catch (err) {
-    console.warn('No se pudo registrar error cliente:', err);
+  } else {
+    list.innerHTML = '<p class="placeholder">Sin items</p>';
   }
 }
 
-function isValidCampaignId(id) {
-  return /^cmp_[a-zA-Z0-9]{8,40}$/.test(String(id || '').trim());
+function updateMapaTab() {
+  const list = document.getElementById('locationListTab');
+  
+  if (state.locations && state.locations.length > 0) {
+    list.innerHTML = '';
+    state.locations.forEach(loc => {
+      const el = document.createElement('div');
+      el.className = 'location-btn';
+      el.textContent = loc.name || loc.location_name || 'Lugar';
+      list.appendChild(el);
+    });
+  } else {
+    list.innerHTML = '<p class="placeholder">Descubriendo lugares...</p>';
+  }
+}
+
+function updateStatsPanel() {
+  const state_data = state.currentState || {};
+  
+  // Update stat cards
+  document.getElementById('statHealth').textContent = '100';
+  document.getElementById('statHealthBar').style.width = '100%';
+  
+  document.getElementById('statHunger').textContent = '0';
+  document.getElementById('statHungerBar').style.width = '0%';
+  
+  document.getElementById('statTemp').textContent = 'Normal';
+  document.getElementById('statFatigueValue').textContent = state_data.fatigue || 'leve';
+  
+  // Location info
+  document.getElementById('statLocationValue').textContent = state_data.location || '-';
+  document.getElementById('statRegionValue').textContent = state_data.region || '-';
+  document.getElementById('statMoneyValue').textContent = state_data.money || '0';
+  
+  // NPCs
+  const npcList = document.getElementById('statsNPCList');
+  npcList.innerHTML = '<p class="placeholder">Sin NPCs</p>';
+  
+  // Inventory
+  const invList = document.getElementById('statsInventoryList');
+  if (state.inventory && state.inventory.length > 0) {
+    invList.innerHTML = '';
+    state.inventory.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'item-entry';
+      el.textContent = item.name || item.item_name || 'Item';
+      invList.appendChild(el);
+    });
+  } else {
+    invList.innerHTML = '<p class="placeholder">Sin items</p>';
+  }
 }

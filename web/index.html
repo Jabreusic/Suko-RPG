@@ -3,159 +3,242 @@
 <head>
   <base target="_top" />
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>SUKO RPG</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="bg-orb orb-a"></div>
-  <div class="bg-orb orb-b"></div>
-
-  <main class="app-shell">
-    <header class="app-header">
-      <h1>SUKO RPG</h1>
-      <p>Narrativa viva. Consecuencias persistentes. Tu historia se guarda sola.</p>
+  <div class="app-container">
+    <!-- HEADER: Logo + Menu Hamburguesa -->
+    <header class="app-header-mobile">
+      <div class="header-left">
+        <button id="menuBtn" class="menu-toggle" aria-label="Menu">☰</button>
+        <h1 class="app-title-mobile">SUKO RPG</h1>
+      </div>
+      <div class="header-right">
+        <button id="statsBtn" class="stats-toggle" aria-label="Stats">❤️</button>
+      </div>
     </header>
 
-    <!-- Controles de campaña (oculto en modo juego) -->
-    <section id="campaignPanel" class="campaign-panel card">
-      <div class="campaign-row">
-        <label for="campaignSelect">Campaña</label>
-        <select id="campaignSelect"></select>
-        <button id="loadCampaignBtn" class="btn secondary">Cargar</button>
+    <!-- MENU LATERAL (oculto por defecto) -->
+    <nav id="sideMenu" class="side-menu hidden">
+      <div class="menu-header">
+        <h2>Menú</h2>
+        <button id="closeMenuBtn" class="close-btn">✕</button>
       </div>
-      <div class="campaign-create">
-        <input id="playerName" type="text" placeholder="Nombre del jugador" maxlength="60" />
-        <input id="characterName" type="text" placeholder="Nombre del personaje" maxlength="60" />
-        <button id="createCampaignBtn" class="btn">Nueva partida</button>
+      
+      <div class="menu-section">
+        <h3>Partida</h3>
+        <button id="newGameBtn" class="menu-item">🆕 Nueva Partida</button>
+        <button id="saveGameBtn" class="menu-item">💾 Guardar</button>
+        <button id="loadGameBtn" class="menu-item">📂 Cargar</button>
       </div>
-    </section>
 
-    <!-- Layout principal: sidebar (desktop) + contenido -->
-    <div class="main-layout">
-      <!-- Sidebar: Inventario, Mapa, Estado (oculto en móvil, tabs en móvil) -->
-      <aside id="sidebar" class="sidebar">
-        <!-- Tabs en móvil -->
-        <div class="sidebar-tabs">
-          <button class="tab-btn active" data-tab="estado">Estado</button>
-          <button class="tab-btn" data-tab="presion">Presión</button>
-          <button class="tab-btn" data-tab="inventario">Inventario</button>
-          <button class="tab-btn" data-tab="mapa">Mapa</button>
+      <div class="menu-section">
+        <h3>Datos</h3>
+        <button id="clearCacheBtn" class="menu-item warning">🗑️ Limpiar Caché</button>
+        <button id="deleteDataBtn" class="menu-item danger">❌ Borrar Todo</button>
+      </div>
+
+      <div class="menu-section">
+        <h3>Acerca de</h3>
+        <div class="info-text">
+          <p><strong>SUKO RPG</strong></p>
+          <p>Mundo Avatar Post-Guerra</p>
+          <p>Año 19 del Concilio</p>
         </div>
+      </div>
+    </nav>
 
-        <!-- Panel: Estado -->
-        <div id="estadoPanel" class="sidebar-panel active">
-          <h3>Estado Actual</h3>
-          <div class="state-info">
-            <div class="state-row">
-              <span class="state-label">Ubicación:</span>
-              <span id="statLocation" class="state-value">-</span>
+    <!-- OVERLAY (cuando el menu está abierto) -->
+    <div id="menuOverlay" class="menu-overlay hidden"></div>
+
+    <!-- MODAL: STATS (oculto por defecto) -->
+    <div id="statsModal" class="modal hidden">
+      <div class="modal-content stats-panel">
+        <div class="modal-header">
+          <h2>Estado Completo</h2>
+          <button class="modal-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="stats-grid">
+            <div class="stat-card health">
+              <div class="stat-label">Vida</div>
+              <div class="stat-value">
+                <span id="statHealth">100</span>%
+                <div class="stat-bar">
+                  <div id="statHealthBar" class="stat-fill" style="width: 100%"></div>
+                </div>
+              </div>
             </div>
-            <div class="state-row">
-              <span class="state-label">Región:</span>
-              <span id="statRegion" class="state-value">-</span>
+            <div class="stat-card hunger">
+              <div class="stat-label">Hambre</div>
+              <div class="stat-value">
+                <span id="statHunger">0</span>%
+                <div class="stat-bar">
+                  <div id="statHungerBar" class="stat-fill" style="width: 0%"></div>
+                </div>
+              </div>
             </div>
-            <div class="state-row">
-              <span class="state-label">Dinero:</span>
-              <span id="statMoney" class="state-value">-</span>
+            <div class="stat-card temperature">
+              <div class="stat-label">Temperatura</div>
+              <div class="stat-value">
+                <span id="statTemp">Normal</span>
+              </div>
             </div>
-            <div class="state-row">
-              <span class="state-label">Fatiga:</span>
-              <span id="statFatigue" class="state-value">-</span>
-            </div>
-            <div id="statNPCs" class="state-section">
-              <div class="state-label">NPCs presentes:</div>
-              <div id="npcList" class="npc-list"></div>
-            </div>
-            <div id="statItems" class="state-section">
-              <div class="state-label">Items disponibles:</div>
-              <div id="floorItems" class="items-list"></div>
+            <div class="stat-card fatigue">
+              <div class="stat-label">Fatiga</div>
+              <div class="stat-value" id="statFatigueValue">leve</div>
             </div>
           </div>
-          <button id="estadoBtn" class="btn secondary small" style="margin-top: 0.5rem;">Refrescar estado</button>
-        </div>
 
-        <!-- Panel: Presión Narrativa -->
-        <div id="presionPanel" class="sidebar-panel">
-          <h3>⚡ Presión Narrativa</h3>
-          <div id="pressureList" class="pressure-list">
-            <p class="placeholder">Sin presión activa</p>
+          <div class="location-section">
+            <h3>Ubicación</h3>
+            <div class="location-info">
+              <p><strong id="statLocationValue">-</strong></p>
+              <p>Región: <span id="statRegionValue">-</span></p>
+              <p>Dinero: <span id="statMoneyValue">-</span> monedas</p>
+            </div>
           </div>
-          <div id="factionList" class="faction-list" style="margin-top: 1rem;">
-            <h4 style="margin: 0.5rem 0;">Facciones</h4>
-            <p class="placeholder">Cargando facciones...</p>
+
+          <div class="npcs-section">
+            <h3>NPCs Presentes</h3>
+            <div id="statsNPCList" class="npc-grid"></div>
           </div>
-          <button id="presionBtn" class="btn secondary small" style="margin-top: 0.5rem;">Refrescar</button>
-        </div>
 
-        <!-- Panel: Inventario -->
-        <div id="inventarioPanel" class="sidebar-panel">
-          <h3>Inventario</h3>
-          <div id="inventoryList" class="inventory-list"></div>
-          <button id="inventarioBtn" class="btn secondary small" style="margin-top: 0.5rem;">Ver inventario</button>
+          <div class="items-section">
+            <h3>Inventario</h3>
+            <div id="statsInventoryList" class="items-grid"></div>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Panel: Mapa -->
-        <div id="mapaPanel" class="sidebar-panel">
-          <h3>Mapa</h3>
-          <div id="locationList" class="location-list"></div>
-          <button id="mapaBtn" class="btn secondary small" style="margin-top: 0.5rem;">Ver mapa</button>
-        </div>
-      </aside>
+    <!-- TAB NAVIGATION -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="chat">💬 Chat</button>
+      <button class="tab-btn" data-tab="presion">⚡ Presión</button>
+      <button class="tab-btn" data-tab="inventario">🎒 Inv</button>
+      <button class="tab-btn" data-tab="mapa">🗺️ Mapa</button>
+    </nav>
 
-      <!-- Chat principal -->
-      <section class="chat-section">
-        <div class="chat card">
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TAB: CHAT (por defecto visible) -->
+      <div id="chatTab" class="tab-panel active">
+        <div class="chat-container">
           <div id="chatBox" class="chat-box" aria-live="polite"></div>
           <div id="errorBox" class="error-box hidden"></div>
+        </div>
 
-          <!-- Barra de comandos con dropdowns -->
-          <div class="commands-bar">
-            <!-- Dropdown ACCIÓN -->
-            <div class="dropdown">
-              <button class="dropdown-toggle btn secondary" data-dropdown="accion">⚙️ ACCIÓN ▼</button>
-              <div id="accion-menu" class="dropdown-menu">
-                <button class="dropdown-item" data-cmd="/hacer">Hacer</button>
-                <button class="dropdown-item" data-cmd="/decir">Decir</button>
-                <button class="dropdown-item" data-cmd="/examinar">Examinar</button>
-                <button class="dropdown-item" data-cmd="/atacar">Atacar</button>
-                <button class="dropdown-item" data-cmd="/usar">Usar</button>
-                <button class="dropdown-item" data-cmd="/hablar">Hablar</button>
-                <button class="dropdown-item" data-cmd="/buscar">Buscar</button>
-              </div>
-            </div>
+        <!-- QUICK COMMANDS -->
+        <div class="quick-commands">
+          <button class="cmd-quick" data-cmd="Investigo cuidadosamente">🔍 Investigar</button>
+          <button class="cmd-quick" data-cmd="Hablo con los presentes">💬 Hablar</button>
+          <button class="cmd-quick" data-cmd="Me preparo para lo que viene">⚔️ Preparar</button>
+          <button class="cmd-quick" data-cmd="Examino el lugar">👀 Examinar</button>
+        </div>
+      </div>
 
-            <!-- Dropdown AVANZADO -->
-            <div class="dropdown">
-              <button class="dropdown-toggle btn secondary" data-dropdown="avanzado">🎭 AVANZADO ▼</button>
-              <div id="avanzado-menu" class="dropdown-menu">
-                <button class="dropdown-item" data-cmd="/combate">⚔️ Combate</button>
-                <button class="dropdown-item" data-cmd="/negociar">💬 Negociar</button>
-                <button class="dropdown-item" data-cmd="/estudiar">📖 Estudiar</button>
-                <button class="dropdown-item" data-cmd="/viajar">🛣️ Viajar</button>
-                <button class="dropdown-item" data-cmd="/investigar">🔍 Investigar</button>
-              </div>
-            </div>
-
-            <!-- Dropdown INFO -->
-            <div class="dropdown">
-              <button class="dropdown-toggle btn secondary" data-dropdown="info">ℹ️ INFO ▼</button>
-              <div id="info-menu" class="dropdown-menu">
-                <button class="dropdown-item" data-cmd="/estado">Estado</button>
-                <button class="dropdown-item" data-cmd="/inventario">Inventario</button>
-                <button class="dropdown-item" data-cmd="/mapa">Mapa</button>
-              </div>
-            </div>
+      <!-- TAB: PRESIÓN -->
+      <div id="presionTab" class="tab-panel">
+        <div class="panel-content">
+          <h2>Presiones Narrativas</h2>
+          <div id="pressureListTab" class="pressure-list">
+            <p class="placeholder">Cargando presiones...</p>
           </div>
-
-          <div class="input-row">
-            <input id="userInput" type="text" placeholder="¿Qué haces?" maxlength="1200" />
-            <button id="sendBtn" class="btn">Enviar</button>
+          
+          <h2 style="margin-top: 1.5rem;">Facciones Activas</h2>
+          <div id="factionListTab" class="faction-list">
+            <p class="placeholder">Cargando facciones...</p>
           </div>
         </div>
-      </section>
+      </div>
+
+      <!-- TAB: INVENTARIO -->
+      <div id="inventarioTab" class="tab-panel">
+        <div class="panel-content">
+          <h2>Inventario</h2>
+          <div id="inventoryListTab" class="inventory-list">
+            <p class="placeholder">Sin items</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: MAPA -->
+      <div id="mapaTab" class="tab-panel">
+        <div class="panel-content">
+          <h2>Mapa - Lugares Conocidos</h2>
+          <div id="locationListTab" class="location-list">
+            <p class="placeholder">Descubriendo lugares...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- INPUT SECTION (SIEMPRE VISIBLE) -->
+    <footer class="input-footer">
+      <div class="input-wrapper">
+        <input id="userInput" type="text" placeholder="¿Qué haces?" maxlength="1200" />
+        <button id="sendBtn" class="btn-send">→</button>
+      </div>
+    </footer>
+
+    <!-- MODAL: NUEVA CAMPAÑA -->
+    <div id="newCampaignModal" class="modal hidden">
+      <div class="modal-content campaign-form">
+        <div class="modal-header">
+          <h2>Nueva Partida</h2>
+          <button class="modal-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="playerNameInput">Nombre del Jugador</label>
+            <input id="playerNameInput" type="text" placeholder="Tu nombre" maxlength="60" />
+          </div>
+          <div class="form-group">
+            <label for="characterNameInput">Nombre del Personaje</label>
+            <input id="characterNameInput" type="text" placeholder="Tu personaje" maxlength="60" />
+          </div>
+          <div class="form-actions">
+            <button id="createNewCampaignBtn" class="btn primary">Crear</button>
+            <button class="btn secondary modal-close">Cancelar</button>
+          </div>
+        </div>
+      </div>
     </div>
-  </main>
+
+    <!-- MODAL: CARGAR PARTIDA -->
+    <div id="loadCampaignModal" class="modal hidden">
+      <div class="modal-content load-form">
+        <div class="modal-header">
+          <h2>Cargar Partida</h2>
+          <button class="modal-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+          <select id="campaignSelectDropdown" class="campaign-select">
+            <option value="">-- Selecciona una partida --</option>
+          </select>
+          <div class="form-actions">
+            <button id="loadSelectedCampaignBtn" class="btn primary">Cargar</button>
+            <button class="btn secondary modal-close">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN PANEL (para inicialización, oculto en juego) -->
+  <div id="campaignInitPanel" class="campaign-init hidden">
+    <div class="init-card">
+      <h1>SUKO RPG</h1>
+      <p>Narrativa viva. Mundo dinámico. Tu historia importa.</p>
+      <div class="init-buttons">
+        <button id="initNewBtn" class="btn large">Nueva Partida</button>
+        <button id="initLoadBtn" class="btn secondary large">Cargar Partida</button>
+      </div>
+    </div>
+  </div>
 
   <script src="client.js"></script>
 </body>
